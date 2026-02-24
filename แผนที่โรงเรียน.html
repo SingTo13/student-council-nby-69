@@ -15,24 +15,41 @@
             --glass: rgba(15, 23, 42, 0.85);
             --border: rgba(56, 189, 248, 0.3);
             --edge-gap: 20px;
-            --safe-top: calc(var(--edge-gap) + env(safe-area-inset-top, 0px));
+            /* ระยะปลอดภัยสำหรับมือถือที่มี Notch หรือแถบด้านล่าง */
+            --safe-bottom: calc(var(--edge-gap) + env(safe-area-inset-bottom, 0px));
         }
 
         body {
             margin: 0; padding: 0; overflow: hidden;
-            background: transparent; /* ให้เห็นพื้นหลังดวงดาวจากไฟล์ JS */
+            background: #020617;
             font-family: 'Kanit', sans-serif;
             touch-action: none; color: white;
+            -webkit-user-select: none; user-select: none;
         }
 
-        /* --- UI Controls --- */
+        /* --- Info Card (ย้ายมาอยู่ด้านล่างกลางจอ) --- */
+        #info-card {
+            position: absolute; 
+            bottom: calc(var(--safe-bottom) + 85px); 
+            left: 50%; transform: translateX(-50%) translateY(20px);
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 10px 25px; border-radius: 50px; text-align: center;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            z-index: 100; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            white-space: nowrap; opacity: 0; pointer-events: none;
+            font-size: 0.9rem;
+        }
+        #info-card.active { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* --- Controls Layout --- */
         .zoom-controls {
-            position: absolute; right: var(--edge-gap); bottom: 40px;
-            display: flex; flex-direction: column; gap: 12px; z-index: 100;
+            position: absolute; right: var(--edge-gap); bottom: var(--safe-bottom);
+            display: flex; flex-direction: column; gap: 12px; z-index: 101;
         }
 
         .nav-controls {
-            position: absolute; left: var(--edge-gap); bottom: 40px; z-index: 100;
+            position: absolute; left: var(--edge-gap); bottom: var(--safe-bottom); z-index: 101;
         }
 
         .action-btn {
@@ -41,27 +58,31 @@
             color: white; font-size: 20px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            transition: 0.3s;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transition: 0.3s; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
         
         .nav-toggle { background: var(--accent); color: #000; border: none; width: 65px; height: 65px; border-radius: 22px; }
         .nav-toggle.active { background: #ef4444; color: white; transform: rotate(45deg); }
 
-        /* --- Navigation Menu --- */
+        /* --- Menu Responsive --- */
         #nav-menu {
-            position: absolute; bottom: 125px; left: var(--edge-gap);
-            width: 280px; background: var(--glass);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            position: absolute; 
+            bottom: calc(var(--safe-bottom) + 80px); 
+            left: var(--edge-gap);
+            width: 320px; 
+            max-width: calc(100% - (var(--edge-gap) * 2));
+            background: var(--glass);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--border);
-            border-radius: 24px; padding: 20px;
-            transform: translateX(-20px) scale(0.9); opacity: 0; pointer-events: none;
+            border-radius: 28px; padding: 20px;
+            transform: translateY(30px); opacity: 0; pointer-events: none;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 90;
         }
-        #nav-menu.active { transform: translateX(0) scale(1); opacity: 1; pointer-events: auto; }
+        #nav-menu.active { transform: translateY(0); opacity: 1; pointer-events: auto; }
 
-        .tabs { display: flex; gap: 8px; margin-bottom: 15px; }
+        /* --- Tabs & Lists --- */
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
         .tab-btn {
             flex: 1; padding: 10px; background: rgba(255,255,255,0.05);
             border: 1px solid var(--border); border-radius: 12px;
@@ -70,30 +91,29 @@
         .tab-btn.active { background: var(--accent); color: #000; font-weight: 600; }
 
         .location-list {
-            max-height: 300px; overflow-y: auto; display: none;
+            max-height: 40vh; overflow-y: auto; display: none;
             flex-direction: column; gap: 6px; padding-right: 5px;
         }
         .location-list.active { display: flex; }
         .loc-item {
-            padding: 12px 15px; background: rgba(255,255,255,0.03);
-            border-radius: 14px; cursor: pointer; border: 1px solid transparent;
+            padding: 12px 18px; background: rgba(255,255,255,0.03);
+            border-radius: 15px; cursor: pointer; border: 1px solid transparent;
             transition: 0.2s; display: flex; align-items: center; gap: 12px; font-size: 0.95rem;
         }
         .loc-item:hover { background: rgba(56, 189, 248, 0.15); border-color: var(--accent); }
         .loc-item i { color: var(--accent); width: 20px; text-align: center; }
 
-        /* --- Info Card --- */
-        #info-card {
-            position: absolute; top: var(--safe-top); left: 50%; transform: translateX(-50%) translateY(-150%);
-            background: var(--glass); border: 1px solid var(--border);
-            padding: 10px 25px; border-radius: 50px; text-align: center;
-            transition: 0.5s; z-index: 100; backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            white-space: nowrap;
+        /* --- Mobile Styles (Breakpoints) --- */
+        @media (max-width: 768px) {
+            :root { --edge-gap: 15px; }
+            .action-btn { width: 50px; height: 50px; font-size: 18px; }
+            .nav-toggle { width: 60px; height: 60px; }
+            #nav-menu { width: calc(100% - 30px); bottom: calc(var(--safe-bottom) + 75px); }
+            #info-card { font-size: 0.85rem; bottom: calc(var(--safe-bottom) + 78px); }
+            .loc-item { padding: 14px 18px; } /* พื้นที่กดใหญ่ขึ้นสำหรับนิ้ว */
         }
-        #info-card.active { transform: translateX(-50%) translateY(0); }
 
-        canvas { outline: none; }
+        canvas { outline: none; display: block; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
     </style>
@@ -103,11 +123,11 @@
     <script src="All/ย้อนกลับ.js"></script>
     <script src="All/พื้นหลัง.js"></script>
     
-    <div id="info-card">📍 กำลังรับชม: <span id="target-name" style="color:var(--accent); font-weight:600;">-</span></div>
+    <div id="info-card">📍 รับชม: <span id="target-name" style="color:var(--accent); font-weight:600;">-</span></div>
 
     <div class="nav-controls">
         <button id="btn-toggle" class="action-btn nav-toggle" onclick="toggleMenu()">
-            <i class="fas fa-location-dot"></i>
+            <i class="fas fa-map-marked-alt"></i>
         </button>
     </div>
 
@@ -124,30 +144,21 @@
         
         <div id="buildings" class="location-list active">
             <div class="loc-item" onclick="flyTo('หน้าเสาธง')"><i class="fas fa-flag"></i> หน้าเสาธง</div>
-            <div class="loc-item" onclick="flyTo('หอประชุม')"><i class="fas fa-building"></i> หอประชุม</div>
-            <div class="loc-item" onclick="flyTo('ศาลากรีฑา')"><i class="fas fa-running"></i> ศาลากรีฑา</div>
+            <div class="loc-item" onclick="flyTo('หอประชุม')"><i class="fas fa-university"></i> หอประชุม</div>
             <div class="loc-item" onclick="flyTo('สนามฟุตบอล')"><i class="fas fa-futbol"></i> สนามฟุตบอล</div>
             <div class="loc-item" onclick="flyTo('อาคาร1')"><i class="fas fa-school"></i> อาคาร 1</div>
             <div class="loc-item" onclick="flyTo('อาคาร2')"><i class="fas fa-school"></i> อาคาร 2</div>
             <div class="loc-item" onclick="flyTo('อาคาร3')"><i class="fas fa-school"></i> อาคาร 3</div>
-            <div class="loc-item" onclick="flyTo('โต๊ะปิงปอง')"><i class="fas fa-utensils"></i> โต๊ะปิงปอง</div>
-            <div class="loc-item" onclick="flyTo('โรงจอดรถ1')"><i class="fas fa-utensils"></i> โรงจอดรถ1</div>
-            <div class="loc-item" onclick="flyTo('โรงจอดรถ2')"><i class="fas fa-utensils"></i> โรงจอดรถ2</div>
             <div class="loc-item" onclick="flyTo('โรงอาหาร')"><i class="fas fa-utensils"></i> โรงอาหาร</div>
-            <div class="loc-item" onclick="flyTo('ห้องน้ำหญิง')"><i class="fas fa-utensils"></i> ห้องน้ำหญิง</div>
-            <div class="loc-item" onclick="flyTo('ห้องน้ำชาย')"><i class="fas fa-utensils"></i> ห้องน้ำชาย</div>
-            <div class="loc-item" onclick="flyTo('ชอป')"><i class="fas fa-utensils"></i> ชอป</div>
-            <div class="loc-item" onclick="flyTo('โรงน้ำดื่ม')"><i class="fas fa-utensils"></i> โรงน้ำดื่ม</div>
-            <div class="loc-item" onclick="flyTo('หอนอนหญิง')"><i class="fas fa-utensils"></i> หอนอนหญิง</div>
-            <div class="loc-item" onclick="flyTo('หอนอนชาย')"><i class="fas fa-utensils"></i> หอนอนชาย</div>
+            
             <div class="loc-item" onclick="resetHighlight(true)" style="margin-top:10px; color:#ef4444; justify-content:center; border-color: rgba(239, 68, 68, 0.3);">
-                <i class="fas fa-undo"></i> รีเซ็ตมุมมอง
+                <i class="fas fa-redo"></i> รีเซ็ตมุมมอง
             </div>
         </div>
 
         <div id="zones" class="location-list">
-            <div class="loc-item" onclick="flyTo('สนามฟุตบอล')"><i class="fas fa-futbol"></i> เขตกีฬา</div>
-            <div class="loc-item" onclick="flyTo('โรงจอดรถ1')"><i class="fas fa-car"></i> เขตที่พักครู</div>
+            <div class="loc-item" onclick="flyTo('สนามฟุตบอล')"><i class="fas fa-running"></i> เขตกีฬา</div>
+            <div class="loc-item" onclick="flyTo('หอนอนหญิง')"><i class="fas fa-bed"></i> เขตหอพัก</div>
         </div>
     </div>
 
@@ -192,8 +203,8 @@
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.maxPolarAngle = Math.PI / 2.1;
-            controls.minDistance = 40;
-            controls.enableZoom = false;
+            controls.minDistance = 50;
+            controls.enableZoom = false; // ป้องกันการ Zoom ทับซ้อนกับ Gesture ของมือถือ
 
             const loader = new GLTFLoader();
             loader.load('school_map.glb', (gltf) => {
@@ -204,7 +215,7 @@
                 const center = box.getCenter(new THREE.Vector3());
                 
                 initialTargetPos.copy(center);
-                initialCameraPos.set(center.x + 400, center.y + 400, center.z + 400);
+                initialCameraPos.set(center.x + 450, center.y + 450, center.z + 450);
                 
                 controls.target.copy(initialTargetPos);
                 camera.position.copy(initialCameraPos);
@@ -216,22 +227,47 @@
             window.addEventListener('resize', onWindowResize);
         }
 
-        function highlightObject(object) {
-            resetHighlight(false); 
-            lastHighlightedObject = object;
-            object.traverse((child) => {
+        window.flyTo = (objectName) => {
+            const targetObj = model.getObjectByName(objectName);
+            if (!targetObj) return;
+
+            // Highlight วัตถุ
+            resetHighlight(false);
+            lastHighlightedObject = targetObj;
+            targetObj.traverse((child) => {
                 if (child.isMesh) {
                     originalMaterials.set(child, child.material);
                     child.material = new THREE.MeshStandardMaterial({
-                        color: 0x38bdf8,
-                        emissive: 0x38bdf8,
-                        emissiveIntensity: 0.5,
-                        transparent: true,
-                        opacity: 0.9
+                        color: 0x38bdf8, emissive: 0x38bdf8, emissiveIntensity: 0.5,
+                        transparent: true, opacity: 0.85
                     });
                 }
             });
-        }
+
+            document.getElementById('target-name').innerText = objectName;
+            document.getElementById('info-card').classList.add('active');
+
+            const targetPos = new THREE.Vector3();
+            targetObj.getWorldPosition(targetPos);
+
+            gsap.to(controls.target, { x: targetPos.x, y: targetPos.y, z: targetPos.z, duration: 1.5 });
+            gsap.to(camera.position, { 
+                x: targetPos.x + 100, y: targetPos.y + 100, z: targetPos.z + 100, 
+                duration: 1.5, onUpdate: () => controls.update() 
+            });
+
+            // ในมือถือ ให้ปิดเมนูอัตโนมัติเมื่อเลือก
+            if(window.innerWidth < 768) {
+                toggleMenu();
+            }
+        };
+
+        window.toggleMenu = () => {
+            const menu = document.getElementById('nav-menu');
+            const btn = document.getElementById('btn-toggle');
+            menu.classList.toggle('active');
+            btn.classList.toggle('active');
+        };
 
         window.resetHighlight = (moveCamera = true) => {
             if (lastHighlightedObject) {
@@ -244,27 +280,10 @@
                 lastHighlightedObject = null;
                 document.getElementById('info-card').classList.remove('active');
             }
-
             if (moveCamera) {
-                gsap.to(controls.target, {
-                    x: initialTargetPos.x, y: initialTargetPos.y, z: initialTargetPos.z,
-                    duration: 1.2, ease: "power2.inOut"
-                });
-                gsap.to(camera.position, {
-                    x: initialCameraPos.x, y: initialCameraPos.y, z: initialCameraPos.z,
-                    duration: 1.2, ease: "power2.inOut",
-                    onUpdate: () => controls.update()
-                });
+                gsap.to(controls.target, { x: initialTargetPos.x, y: initialTargetPos.y, z: initialTargetPos.z, duration: 1.2 });
+                gsap.to(camera.position, { x: initialCameraPos.x, y: initialCameraPos.y, z: initialCameraPos.z, duration: 1.2, onUpdate: () => controls.update() });
             }
-        };
-
-        window.toggleMenu = () => {
-            const menu = document.getElementById('nav-menu');
-            const btn = document.getElementById('btn-toggle');
-            const isClosing = menu.classList.contains('active');
-            menu.classList.toggle('active');
-            btn.classList.toggle('active');
-            if (isClosing) resetHighlight(true);
         };
 
         window.switchTab = (tabId) => {
@@ -274,44 +293,18 @@
             event.target.classList.add('active');
         };
 
-        window.flyTo = (objectName) => {
-            const targetObj = model.getObjectByName(objectName);
-            if (!targetObj) return;
-
-            highlightObject(targetObj);
-            document.getElementById('target-name').innerText = objectName;
-            document.getElementById('info-card').classList.add('active');
-
-            const targetPos = new THREE.Vector3();
-            targetObj.getWorldPosition(targetPos);
-
-            gsap.to(controls.target, {
-                x: targetPos.x, y: targetPos.y, z: targetPos.z,
-                duration: 1.5, ease: "power3.inOut"
-            });
-            gsap.to(camera.position, {
-                x: targetPos.x + 80, y: targetPos.y + 80, z: targetPos.z + 80,
-                duration: 1.5, ease: "power3.inOut",
-                onUpdate: () => controls.update()
-            });
-
-            if(window.innerWidth < 768) {
-                document.getElementById('nav-menu').classList.remove('active');
-                document.getElementById('btn-toggle').classList.remove('active');
-            }
-        };
-
         function setupZoomEvents() {
             const setup = (id, dir) => {
                 const btn = document.getElementById(id);
                 btn.onpointerdown = (e) => { btn.setPointerCapture(e.pointerId); zoomDir = dir; };
                 btn.onpointerup = () => zoomDir = 0;
+                btn.onpointerleave = () => zoomDir = 0;
             };
             setup("btn-in", -1); setup("btn-out", 1);
         }
 
         function updateZoom() {
-            currentZoomSpeed += (zoomDir * 10.0 - currentZoomSpeed) * 0.2;
+            currentZoomSpeed += (zoomDir * 10.0 - currentZoomSpeed) * 0.15;
             if (Math.abs(currentZoomSpeed) > 0.01) {
                 const dir = new THREE.Vector3();
                 camera.getWorldDirection(dir);
