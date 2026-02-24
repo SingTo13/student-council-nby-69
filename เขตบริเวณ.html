@@ -13,7 +13,7 @@
         :root {
             --bg: #030712;
             --accent: #38bdf8;
-            --glass: rgba(15, 23, 42, 0.85);
+            --glass: rgba(15, 23, 42, 0.8);
             --border: rgba(56, 189, 248, 0.3);
         }
 
@@ -27,15 +27,12 @@
         #stars-container { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
         .star { position: absolute; background: white; border-radius: 50%; opacity: 0; }
 
-        /* Backdrop */
         #ui-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+            position: fixed; inset: 0; background: rgba(0,0,0,0);
             z-index: 105; display: none; pointer-events: all;
-            backdrop-filter: blur(4px);
         }
         #ui-overlay.active { display: block; }
 
-        /* Header */
         .top-nav {
             position: absolute; top: 20px; left: 20px; right: 20px;
             display: flex; justify-content: space-between; align-items: center; z-index: 100;
@@ -46,11 +43,8 @@
             backdrop-filter: blur(15px); color: white; padding: 10px 18px;
             border-radius: 14px; text-decoration: none; font-size: 14px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: 0.3s;
         }
-        .btn-back:hover { background: var(--accent); color: #000; }
 
-        /* Zoom Controls */
         .zoom-controls {
             position: absolute; right: 25px; bottom: 140px;
             display: flex; flex-direction: column; gap: 15px; z-index: 106;
@@ -64,16 +58,14 @@
             font-size: 1.4rem; border: none; transition: 0.3s;
         }
         .btn-home { background: var(--glass); color: var(--accent); border: 1px solid var(--border); }
-        .zoom-btn:active { transform: scale(0.9); }
 
-        /* Info Panel */
         #info-panel {
             position: absolute; bottom: -100%; left: 20px; right: 20px;
             background: var(--glass); border: 2px solid var(--border);
             backdrop-filter: blur(25px); border-radius: 32px; padding: 30px;
-            z-index: 110; transition: bottom 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 110; transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
-            max-width: 600px; margin: 0 auto 20px auto;
+            margin-bottom: 20px;
         }
         #info-panel.active { bottom: 0; }
 
@@ -82,12 +74,11 @@
             border-radius: 10px; margin: -15px auto 15px;
         }
 
-        /* Bottom Menu */
         .bottom-menu {
             position: absolute; bottom: 30px; left: 20px; right: 20px;
             display: flex; gap: 12px; z-index: 100;
             overflow-x: auto; scrollbar-width: none;
-            padding: 5px; transition: 0.5s;
+            padding: 5px; transition: 0.3s;
         }
         .bottom-menu::-webkit-scrollbar { display: none; }
 
@@ -96,9 +87,7 @@
             border: 1px solid var(--border); border-radius: 20px; cursor: pointer;
             font-family: 'Kanit'; font-size: 15px; backdrop-filter: blur(10px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            transition: 0.3s;
         }
-        .menu-item:hover { background: var(--accent); color: #000; transform: translateY(-5px); }
 
         canvas { display: block; outline: none; }
     </style>
@@ -109,7 +98,7 @@
     <div id="stars-container"></div>
 
     <div class="top-nav">
-        <a href="index.html" class="btn-back"><i class="fas fa-chevron-left"></i> กลับหน้าหลัก</a>
+        <a href="index.html" class="btn-back"><i class="fas fa-chevron-left mr-2"></i> กลับหน้าหลัก</a>
         <div style="text-align: right;">
             <div style="font-family:'Kanit'; font-weight:700; color:var(--accent); font-size: 1.4rem; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);">สภานักเรียน</div>
             <div style="font-size: 10px; opacity: 0.9; letter-spacing: 1px;">3D CAMPUS NAVIGATOR</div>
@@ -117,24 +106,24 @@
     </div>
 
     <div class="zoom-controls">
-        <div class="zoom-btn" onclick="manualZoom(-20)"><i class="fas fa-plus"></i></div>
-        <div class="zoom-btn" onclick="manualZoom(20)"><i class="fas fa-minus"></i></div>
+        <div class="zoom-btn" onclick="manualZoom(-15)"><i class="fas fa-plus"></i></div>
+        <div class="zoom-btn" onclick="manualZoom(15)"><i class="fas fa-minus"></i></div>
         <div class="zoom-btn btn-home" onclick="resetCamera()"><i class="fas fa-sync-alt"></i></div>
     </div>
 
     <div id="info-panel">
         <div class="handle"></div>
-        <h2 id="area-name" style="font-family:'Kanit'; margin:0; color:var(--accent); font-size: 26px;">เลือกพื้นที่</h2>
-        <p id="area-duty" style="font-size: 16px; margin:12px 0; color: #fff; font-weight: 600;">ผู้รับผิดชอบ: -</p>
+        <h2 id="area-name" style="font-family:'Kanit'; margin:0; color:var(--accent); font-size: 24px;">เลือกพื้นที่</h2>
+        <p id="area-duty" style="font-size: 16px; margin:10px 0; color: #fff; font-weight: 600;">ผู้รับผิดชอบ: -</p>
         <div id="area-desc" style="font-size: 15px; opacity: 0.9; line-height: 1.7; background: rgba(0,0,0,0.3); padding: 18px; border-radius: 20px; border: 1px solid var(--border);">
-            คลิกปุ่มด้านล่างเพื่อสำรวจเขตบริเวณรับผิดชอบ
+            คลิกที่อาคารในเมนูด้านล่างเพื่อแสดงข้อมูล
         </div>
     </div>
 
     <div class="bottom-menu" id="main-menu">
-        <div class="menu-item" onclick="focusArea('Building_A', {x: 30, y: 25, z: 30})">🏢 อาคาร 1</div>
-        <div class="menu-item" onclick="focusArea('Building_B', {x: -30, y: 25, z: 30})">🔬 อาคาร 2</div>
-        <div class="menu-item" onclick="focusArea('Gym', {x: 0, y: 30, z: -40})">🏀 โรงยิม</div>
+        <div class="menu-item" onclick="focusArea('Building_A', {x: 20, y: 15, z: 20})">🏢 อาคาร 1</div>
+        <div class="menu-item" onclick="focusArea('Building_B', {x: -20, y: 15, z: 20})">🔬 อาคาร 2</div>
+        <div class="menu-item" onclick="focusArea('Gym', {x: 0, y: 15, z: -30})">🏀 โรงยิม</div>
     </div>
 
     <script type="importmap">
@@ -152,82 +141,64 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         const zones = {
-            "Building_A": { name: "อาคาร 1", duty: "คณะสภานักเรียน ม.6", desc: "ศูนย์ปฏิบัติการสภานักเรียนและจุดบริการนักเรียนหลัก" },
-            "Building_B": { name: "อาคาร 2", duty: "ฝ่ายวิชาการ ม.5", desc: "อาคารเรียนรวมและห้องปฏิบัติการคอมพิวเตอร์" },
-            "Gym": { name: "โรงยิม", duty: "ฝ่ายกีฬา ม.4", desc: "พื้นที่สำหรับกิจกรรมนันทนาการและหอประชุมในร่ม" }
+            "Building_A": { name: "อาคาร 1", duty: "คณะสภานักเรียน ม.6", desc: "ศูนย์ปฏิบัติการสภานักเรียนและจุดบริการนักเรียน" },
+            "Building_B": { name: "อาคาร 2", duty: "ฝ่ายวิชาการ ม.5", desc: "อาคารเรียนวิทยาศาสตร์และห้องปฏิบัติการคอมพิวเตอร์" },
+            "Gym": { name: "โรงยิม", duty: "ฝ่ายกีฬา ม.4", desc: "พื้นที่สำหรับกิจกรรมกีฬาและหอประชุมในร่ม" }
         };
 
-        // --- Scene Setup ---
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 3000);
-        camera.position.set(80, 60, 80); 
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000);
+        camera.position.set(50, 40, 50); 
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.toneMapping = THREE.ReinhardToneMapping;
-        renderer.shadowMap.enabled = true;
         document.body.appendChild(renderer.domElement);
 
-        // --- Lights ---
-        scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        dirLight.position.set(50, 100, 50);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
+        // เพิ่มแสงให้สว่างขึ้นเพื่อให้เห็นโมเดลชัดเจน
+        scene.add(new THREE.AmbientLight(0xffffff, 2.0));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+        sun.position.set(10, 20, 10);
+        scene.add(sun);
 
-        // --- Controls ---
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.maxPolarAngle = Math.PI / 2.2; // ป้องกันการมองใต้พื้น
-        controls.minDistance = 10;
-        controls.maxDistance = 500;
+        controls.maxPolarAngle = 1.4;
 
-        // --- Load Model ---
         const loader = new GLTFLoader();
-        let mainModel = null;
-
+        
+        // --- ส่วนที่ปรับปรุง: โหลดโมเดลพร้อมเช็คขนาด ---
         loader.load('school_map.glb', (gltf) => {
-            mainModel = gltf.scene;
+            const model = gltf.scene;
             
-            // ปรับจุดศูนย์กลางโมเดล
-            const box = new THREE.Box3().setFromObject(mainModel);
+            // ปรับกึ่งกลางโมเดล
+            const box = new THREE.Box3().setFromObject(model);
             const center = box.getCenter(new THREE.Vector3());
-            mainModel.position.sub(center);
+            model.position.sub(center);
             
-            scene.add(mainModel);
-            
-            // Fade-in effect
-            mainModel.scale.set(0,0,0);
-            gsap.to(mainModel.scale, { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.2)" });
-        }, 
-        (xhr) => console.log((xhr.loaded / xhr.total * 100) + '% loaded'),
-        (err) => console.error("Error loading model:", err));
+            scene.add(model);
+            console.log("Model loaded successfully");
+        }, undefined, (error) => {
+            console.error("Error loading model:", error);
+        });
 
-        // --- Functions ---
         window.manualZoom = function(amount) {
             const dir = new THREE.Vector3();
             camera.getWorldDirection(dir);
-            const targetPos = new THREE.Vector3().addVectors(camera.position, dir.multiplyScalar(-amount * 1.5));
-            gsap.to(camera.position, { x: targetPos.x, y: targetPos.y, z: targetPos.z, duration: 0.5 });
+            const targetPos = new THREE.Vector3().addVectors(camera.position, dir.multiplyScalar(-amount * 0.8));
+            gsap.to(camera.position, { x: targetPos.x, y: targetPos.y, z: targetPos.z, duration: 0.5, onUpdate: () => controls.update() });
         };
 
         window.resetCamera = function() {
             closeInfo();
-            gsap.to(camera.position, { x: 80, y: 60, z: 80, duration: 1.5, ease: "power3.inOut" });
-            gsap.to(controls.target, { x: 0, y: 0, z: 0, duration: 1.5 });
+            gsap.to(camera.position, { x: 50, y: 40, z: 50, duration: 1.2 });
+            gsap.to(controls.target, { x: 0, y: 0, z: 0, duration: 1.2 });
         };
 
         window.focusArea = function(id, pos) {
             const data = zones[id];
-            if(!data) return;
-
-            // เลื่อนกล้องไปหาอาคาร
-            gsap.to(camera.position, { x: pos.x, y: pos.y, z: pos.z, duration: 1.5, ease: "expo.out" });
-            gsap.to(controls.target, { x: pos.x * 0.3, y: 0, z: pos.z * 0.3, duration: 1.5 });
+            gsap.to(camera.position, { x: pos.x, y: pos.y, z: pos.z, duration: 1.2, ease: "expo.out" });
             
-            // อัปเดต UI
             document.getElementById('area-name').innerText = data.name;
             document.getElementById('area-duty').innerText = "ผู้รับผิดชอบ: " + data.duty;
             document.getElementById('area-desc').innerText = data.desc;
@@ -243,18 +214,16 @@
             document.getElementById('main-menu').style.transform = "translateY(0)";
         };
 
-        // --- Background Stars ---
+        // Stars Background
         const starsContainer = document.getElementById('stars-container');
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 80; i++) {
             const star = document.createElement('div');
             star.className = 'star';
             const size = Math.random() * 2 + 1;
-            star.style.width = size + 'px'; 
-            star.style.height = size + 'px';
-            star.style.top = Math.random() * 100 + '%'; 
-            star.style.left = Math.random() * 100 + '%';
+            star.style.width = size + 'px'; star.style.height = size + 'px';
+            star.style.top = Math.random() * 100 + '%'; star.style.left = Math.random() * 100 + '%';
             starsContainer.appendChild(star);
-            gsap.to(star, { opacity: 0.8, duration: Math.random() * 3 + 1, repeat: -1, yoyo: true });
+            gsap.to(star, { opacity: 0.8, duration: Math.random() * 2 + 1, repeat: -1, yoyo: true });
         }
 
         function animate() {
