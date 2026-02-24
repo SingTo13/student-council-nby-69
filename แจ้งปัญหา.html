@@ -11,47 +11,17 @@
 
     <style>
         :root {
-            --bg: #030712;
             --accent: #38bdf8;
             --glass: rgba(255, 255, 255, 0.05);
             --border: rgba(255, 255, 255, 0.15);
         }
 
         body {
-            background-color: var(--bg);
-            color: white; font-family: 'Sarabun', sans-serif;
-            background: radial-gradient(circle at 50% 0%, #111827 0%, #030712 100%);
-            min-height: 100vh; overflow-x: hidden;
-        }
-
-        #stars-container { position: fixed; inset: 0; z-index: -1; }
-        .star { position: absolute; background: white; border-radius: 50%; opacity: 0; animation: twinkle 3s infinite; }
-        @keyframes twinkle { 0%, 100% { opacity: 0; } 50% { opacity: 0.7; } }
-
-        /* --- FIXED BACK BUTTON --- */
-        .nav-btn {
-            position: fixed; /* ตำแหน่งคงที่เสมอ */
-            top: 25px; 
-            left: 25px;
-            padding: 10px 18px; 
-            border-radius: 12px;
-            background: rgba(15, 23, 42, 0.8); 
-            border: 1px solid var(--border);
             color: white; 
-            text-decoration: none; 
-            backdrop-filter: blur(12px);
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            z-index: 9999; /* อยู่บนสุดเสมอ */
-            font-family: 'Kanit';
-            display: flex;
-            align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        .nav-btn:hover { 
-            background: white; 
-            color: black; 
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 20px rgba(56, 189, 248, 0.4);
+            font-family: 'Sarabun', sans-serif;
+            min-height: 100vh; 
+            overflow-x: hidden;
+            /* ลบพื้นหลังเก่าออกเพื่อให้ใช้จาก พื้นหลัง.js */
         }
 
         .container { max-width: 800px; padding-top: 100px; padding-bottom: 80px; }
@@ -66,9 +36,12 @@
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--border);
             border-radius: 30px; padding: 40px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4); margin-bottom: 50px;
+            position: relative;
+            z-index: 2;
         }
 
         .custom-textarea {
@@ -86,7 +59,7 @@
         .btn-submit:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(56, 189, 248, 0.4); }
 
         /* Badge Status */
-        .complaint-item { background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 25px; margin-bottom: 20px; }
+        .complaint-item { background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 25px; margin-bottom: 20px; position: relative; z-index: 2; }
         .badge-status { padding: 6px 14px; border-radius: 8px; font-family: 'Kanit'; font-weight: 600; font-size: 0.8rem; margin-bottom: 12px; display: inline-block; }
         .status-wait { background: #ef4444; } .status-process { background: #f59e0b; } .status-success { background: #10b981; } .status-fail { background: #6b7280; }
 
@@ -101,8 +74,9 @@
     </style>
 </head>
 <body>
-
-    <div id="stars-container"></div>
+    <script src="All/กำลังโหลด.js"></script>
+    <script src="All/ย้อนกลับ.js"></script>
+    <script src="All/พื้นหลัง.js"></script>
 
     <div id="success-overlay">
         <div class="success-box" id="successBox">
@@ -112,10 +86,6 @@
             <button onclick="closeSuccess()" class="btn btn-outline-light mt-3 px-4 rounded-pill">ตกลง</button>
         </div>
     </div>
-
-    <a href="index.html" class="nav-btn">
-        <i class="fas fa-home me-2"></i> กลับหน้าหลัก
-    </a>
 
     <div class="container">
         <div class="text-center mb-5">
@@ -156,7 +126,7 @@
         const detailInput = document.getElementById('detail');
         const complaintList = document.getElementById('complaintList');
 
-        // ฟังก์ชันลบข้อมูลอัตโนมัติ (จบงาน > 7 วัน)
+        // ฟังก์ชันลบข้อมูลอัตโนมัติ
         const autoCleanUp = async () => {
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -224,18 +194,11 @@
         });
 
         autoCleanUp();
-
-        // Background Stars
-        const stars = document.getElementById('stars-container');
-        for (let i = 0; i < 70; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.width = star.style.height = (Math.random() * 2 + 1) + 'px';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.left = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 5 + 's';
-            stars.appendChild(star);
-        }
     </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="พื้นหลัง.js"></script>
+    <script src="ย้อนกลับ.js"></script>
+
 </body>
 </html>

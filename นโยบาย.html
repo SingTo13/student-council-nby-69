@@ -11,7 +11,6 @@
 
     <style>
         :root {
-            --bg: #030712;
             --accent: #38bdf8;
             --glass: rgba(255, 255, 255, 0.03);
             --border: rgba(255, 255, 255, 0.1);
@@ -20,30 +19,15 @@
         }
 
         body {
-            background-color: var(--bg); color: white;
-            font-family: 'Sarabun', sans-serif; min-height: 100vh; overflow-x: hidden;
-            background: radial-gradient(circle at 50% 0%, #1e293b 0%, #030712 100%);
+            color: white;
+            font-family: 'Sarabun', sans-serif; 
+            min-height: 100vh; 
+            overflow-x: hidden;
+            /* พื้นหลังจะถูกควบคุมโดย พื้นหลัง.js */
         }
 
-        /* --- Starfield Effect --- */
-        #stars-container { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
-        .star { 
-            position: absolute; background: white; border-radius: 50%; 
-            opacity: 0; animation: starTwinkle 3s infinite ease-in-out;
-        }
-        @keyframes starTwinkle { 0%, 100% { opacity: 0; transform: scale(0.5); } 50% { opacity: 0.8; transform: scale(1.2); } }
-
-        /* --- Navigation --- */
-        .nav-btn {
-            position: fixed; top: 20px; left: 20px; height: 50px; 
-            background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border);
-            backdrop-filter: blur(20px); border-radius: 16px; color: white;
-            display: flex; align-items: center; padding: 0 20px;
-            text-decoration: none; z-index: 1000; transition: var(--speed) var(--curve);
-        }
-        .nav-btn:hover { background: white; color: black; transform: scale(1.05) translateX(5px); }
-
-        .header-section { padding: 110px 20px 40px; text-align: center; }
+        /* --- Header --- */
+        .header-section { padding: 110px 20px 40px; text-align: center; position: relative; z-index: 2; }
         .header-title { 
             font-family: 'Kanit'; font-size: 2.5rem; font-weight: 700;
             background: linear-gradient(to right, #fff, var(--accent));
@@ -55,13 +39,14 @@
         .policy-grid {
             display: grid; grid-template-columns: repeat(2, 1fr);
             gap: 15px; max-width: 900px; margin: 0 auto; padding: 0 20px 50px;
+            position: relative; z-index: 2;
         }
         @media (min-width: 768px) { .policy-grid { grid-template-columns: repeat(4, 1fr); } }
 
         .policy-card-small {
             background: var(--glass); border: 1px solid var(--border);
             border-radius: 24px; padding: 25px 15px; text-align: center;
-            cursor: pointer; position: relative; overflow: hidden;
+            cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             transition: transform 0.5s var(--curve), background 0.3s, border 0.3s;
             opacity: 0; transform: scale(0.8) translateY(30px);
         }
@@ -90,9 +75,9 @@
         .policy-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85);
             display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none; transition: 0.5s ease; z-index: 10000; padding: 20px;
+            opacity: 0; pointer-events: none; transition: 0.5s ease; z-index: 10001; padding: 20px;
         }
-        .policy-modal.active { opacity: 1; pointer-events: auto; backdrop-filter: blur(15px); }
+        .policy-modal.active { opacity: 1; pointer-events: auto; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); }
 
         .modal-content-custom {
             width: 100%; max-width: 380px; background: #0f172a;
@@ -107,13 +92,12 @@
             width: 80px; height: 80px; background: rgba(56, 189, 248, 0.1);
             border-radius: 24px; display: flex; align-items: center; justify-content: center;
             font-size: 38px; color: var(--accent); margin: 0 auto 20px;
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.2);
         }
         
         .m-tag { 
             display: inline-block; padding: 6px 16px; background: var(--accent);
             color: #000; border-radius: 12px; font-weight: 700; font-size: 12px;
-            margin-bottom: 15px; text-transform: uppercase;
+            margin-bottom: 15px; text-transform: uppercase; font-family: 'Kanit';
         }
 
         .m-desc { 
@@ -131,13 +115,10 @@
     </style>
 </head>
 <body>
-
-    <div id="stars-container"></div>
-
-    <a href="index.html" class="nav-btn">
-        <i class="fas fa-arrow-left me-2"></i> ย้อนกลับ
-    </a>
-
+    <script src="All/กำลังโหลด.js"></script>
+    <script src="All/ย้อนกลับ.js"></script>
+    <script src="All/พื้นหลัง.js"></script>
+    
     <div class="header-section">
         <h1 class="header-title">นโยบายสภานักเรียน</h1>
         <p style="opacity: 0.6; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Building the future of N.B.Y. together</p>
@@ -170,20 +151,6 @@
             { title: "ของดีต้องไปต่อ", tag: "นันทนาการ", icon: 'arrow-rotate-right', desc: "สืบสานคุณภาพ: สานต่อนโยบายรุ่นพี่ที่เป็นประโยชน์และได้รับความนิยม เช่น N.B.Y. Market ตลาดนัดนักเรียน" },
             { title: "สภาลงมือ ไม่ใช่ลงรูป", tag: "จิตอาสา", icon: 'hands-helping', desc: "สภาปฏิบัติการ: เน้นการทำงานจริงด้วยจิตอาสา เช่น กิจกรรมร่วมใจทำความสะอาดโรงเรียนและห้องน้ำเป็นประจำทุกสิ้นเดือน" }
         ];
-
-        // Star Background
-        const starsContainer = document.getElementById('stars-container');
-        for (let i = 0; i < 80; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            const size = Math.random() * 3 + 1;
-            star.style.width = size + 'px';
-            star.style.height = size + 'px';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.left = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 5 + 's';
-            starsContainer.appendChild(star);
-        }
 
         // Render Cards
         const grid = document.getElementById('grid');

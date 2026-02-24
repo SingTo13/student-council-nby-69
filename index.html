@@ -1,260 +1,189 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal | สภานักเรียน NBY</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Portal | สภานักเรียน NBY</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
 
-<style>
-:root{
-    --bg1:#0a0f2c;
-    --bg2:#141c4d;
-    --bg3:#1f2b6d;
-    --card:rgba(255,255,255,0.08);
-    --border:rgba(255,255,255,0.18);
-    --glow:#00cfff;
-}
+    <style>
+        :root {
+            --accent: #38bdf8;
+            --glass: rgba(35, 51, 88, 0.65); /* ปรับให้อ่อนลงเพื่อโชว์พื้นหลัง */
+            --border: rgba(255, 255, 255, 0.15);
+            --glow: #00cfff;
+        }
 
-html{
-    scroll-behavior:smooth;
-}
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Sarabun', sans-serif;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            padding: 40px 20px;
+            background: transparent; /* ใช้พื้นหลังดวงดาวจากไฟล์ JS */
+        }
 
-body{
-    margin:0;
-    min-height:100vh;
-    font-family:'Sarabun',sans-serif;
-    color:white;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow-x:hidden;
-    padding:40px 20px;
+        /* ===== Portal Card (แบบเบลอกระจกฝ้า) ===== */
+        .portal-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 30px;
+            background: var(--glass);
+            /* หัวใจสำคัญของการเบลอพื้นหลัง */
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px); 
+            
+            border: 1px solid var(--border);
+            border-radius: 35px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+        }
 
-    background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
-    position:relative;
-}
+        .school-logo {
+            width: 90px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4));
+            animation: floatLogo 5s ease-in-out infinite;
+        }
 
-/* ===== Soft moving gradient overlay (ลื่นกว่าแบบเก่า) ===== */
-body::before{
-    content:"";
-    position:fixed;
-    inset:-50%;
-    background:radial-gradient(circle at 30% 40%, rgba(0,207,255,0.15), transparent 40%),
-               radial-gradient(circle at 70% 70%, rgba(0,120,255,0.12), transparent 40%);
-    animation:floatBG 25s linear infinite;
-    z-index:0;
-}
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
 
-@keyframes floatBG{
-    0%{transform:rotate(0deg)}
-    100%{transform:rotate(360deg)}
-}
+        h2 { font-family: 'Kanit'; font-weight: 700; letter-spacing: 0.5px; }
 
-/* ===== Light Sweep ===== */
-body::after{
-    content:"";
-    position:fixed;
-    top:0;
-    left:-100%;
-    width:30%;
-    height:100%;
-    background:linear-gradient(120deg, transparent, rgba(255,255,255,0.08), transparent);
-    animation:sweep 14s linear infinite;
-    z-index:1;
-}
+        /* ===== Link Buttons ===== */
+        .btn-link-custom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 22px;
+            margin-bottom: 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-family: 'Kanit';
+            text-decoration: none;
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.95);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid transparent;
+        }
 
-@keyframes sweep{
-    from{left:-100%}
-    to{left:150%}
-}
+        .btn-link-custom:hover {
+            transform: scale(1.03) translateY(-3px);
+            background: #fff;
+            box-shadow: 0 10px 25px rgba(56, 189, 248, 0.4);
+            color: #000;
+        }
 
-/* ===== Stars (ลดจำนวนให้ลื่นขึ้น) ===== */
-.stars{
-    position:fixed;
-    inset:0;
-    z-index:0;
-    pointer-events:none;
-}
+        .btn-link-custom i.fa-chevron-right {
+            font-size: 0.8rem;
+            opacity: 0.5;
+            transition: 0.3s;
+        }
 
-.star{
-    position:absolute;
-    width:2px;
-    height:2px;
-    background:white;
-    border-radius:50%;
-    opacity:0.6;
-    animation:twinkle 4s infinite ease-in-out;
-}
+        .btn-link-custom:hover i.fa-chevron-right {
+            transform: translateX(5px);
+            opacity: 1;
+        }
 
-@keyframes twinkle{
-    0%,100%{opacity:0.2}
-    50%{opacity:1}
-}
+        /* ===== Social Section ===== */
+        .social-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            transition: 0.3s;
+            color: white;
+            text-decoration: none;
+            font-size: 1.4rem;
+        }
 
-/* ===== Portal Card ===== */
-.portal-card{
-    width:100%;
-    max-width:420px;
-    padding:40px;
-    background:var(--card);
-    backdrop-filter:blur(30px);
-    border:1px solid var(--border);
-    border-radius:28px;
-    box-shadow:0 25px 70px rgba(0,0,0,0.6);
-    text-align:center;
-    position:relative;
-    z-index:2;
-    overflow:hidden;
-    transition:0.4s;
-}
+        .social-icon:hover {
+            background: var(--accent);
+            color: #0f172a;
+            transform: translateY(-5px) rotate(8deg);
+            box-shadow: 0 10px 20px rgba(56, 189, 248, 0.3);
+        }
 
-/* Glass shine */
-.portal-card::before{
-    content:"";
-    position:absolute;
-    top:-50%;
-    left:-50%;
-    width:200%;
-    height:200%;
-    background:linear-gradient(120deg, transparent, rgba(255,255,255,0.05), transparent);
-    transform:rotate(25deg);
-    animation:shine 10s linear infinite;
-}
+        .tag-line {
+            font-family: 'Kanit';
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 25px;
+            text-transform: uppercase;
+        }
 
-@keyframes shine{
-    from{transform:translateX(-100%) rotate(25deg)}
-    to{transform:translateX(100%) rotate(25deg)}
-}
-
-.school-logo{
-    width:100px;
-    margin-bottom:20px;
-    animation:floatLogo 5s ease-in-out infinite;
-}
-
-@keyframes floatLogo{
-    0%,100%{transform:translateY(0)}
-    50%{transform:translateY(-10px)}
-}
-
-/* ===== Premium Button ===== */
-.btn-link-custom{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:15px 22px;
-    margin-bottom:15px;
-    border-radius:18px;
-    font-weight:600;
-    text-decoration:none;
-    color:#0a0f2c;
-    background:linear-gradient(145deg,#ffffff,#e6f6ff);
-    transition:all 0.3s ease;
-    position:relative;
-}
-
-.btn-link-custom:hover{
-    transform:translateY(-4px);
-    box-shadow:0 0 20px var(--glow),
-               0 0 40px rgba(0,207,255,0.4);
-}
-
-/* ===== Social ===== */
-.social-icon{
-    width:48px;
-    height:48px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(255,255,255,0.08);
-    border:1px solid var(--border);
-    transition:0.3s;
-    color:white;
-}
-
-.social-icon:hover{
-    transform:translateY(-4px);
-    box-shadow:0 0 15px var(--glow);
-}
-
-/* Responsive */
-@media(max-width:576px){
-    body{align-items:flex-start}
-}
-</style>
+        /* Responsive */
+        @media (max-width: 576px) {
+            body { align-items: flex-start; padding-top: 60px; }
+            .portal-card { padding: 35px 25px; border-radius: 30px; }
+        }
+    </style>
 </head>
-
 <body>
+    <script src="All/พื้นหลัง.js"></script>
+    <script src="All/กำลังโหลด.js"></script>
 
-<div class="stars" id="stars"></div>
+    <div class="portal-card">
+        <img src="โลโก้/SmNBY.webp" class="school-logo">
 
-<div class="portal-card">
+        <h2 class="mb-1">สภานักเรียน</h2>
+        <p class="tag-line">N.B.Y. Student Council</p>
 
-<img src="โลโก้/SmNBY.webp" class="school-logo">
+        <a href="https://www.nby.ac.th/mainpage" class="btn-link-custom">
+            <span><i class="fas fa-school me-3" style="color: #0ea5e9;"></i>เว็บไซต์โรงเรียน</span>
+            <i class="fas fa-chevron-right"></i>
+        </a>
 
-<h2 class="fw-bold mb-1">สภานักเรียน</h2>
-<p class="small opacity-75 text-uppercase mb-4">Nakornbangyang Pittayakhom</p>
+        <a href="สมาชิกสภานักเรียน.html" class="btn-link-custom">
+            <span><i class="fas fa-user-graduate me-3" style="color: #8b5cf6;"></i>สมาชิกสภานักเรียน</span>
+            <i class="fas fa-chevron-right"></i>
+        </a>
 
-<a href="https://www.nby.ac.th/mainpage" class="btn-link-custom">
-<span><i class="fas fa-school me-2"></i>เว็บไซต์โรงเรียน</span>
-<i class="fas fa-chevron-right"></i>
-</a>
+        <a href="นโยบาย.html" class="btn-link-custom">
+            <span><i class="fas fa-lightbulb me-3" style="color: #f59e0b;"></i>นโยบาย Stellar</span>
+            <i class="fas fa-chevron-right"></i>
+        </a>
 
-<a href="สมาชิกสภานักเรียน.html" class="btn-link-custom">
-<span><i class="fas fa-user-graduate me-2"></i>สมาชิกสภานักเรียน</span>
-<i class="fas fa-chevron-right"></i>
-</a>
+        <a href="แจ้งปัญหา.html" class="btn-link-custom">
+            <span><i class="fas fa-comment-dots me-3" style="color: #10b981;"></i>แจ้งปัญหา (Test)</span>
+            <i class="fas fa-chevron-right"></i>
+        </a>
 
-<a href="นโยบาย.html" class="btn-link-custom">
-<span><i class="fas fa-gavel me-2"></i>นโยบาย</span>
-<i class="fas fa-chevron-right"></i>
-</a>
+        <a href="แผนที่โรงเรียน.html" class="btn-link-custom">
+            <span><i class="fas fa-map-marked-alt me-3" style="color: #ef4444;"></i>3D Campus Map</span>
+            <i class="fas fa-chevron-right"></i>
+        </a>
 
-<a href="https://drive.google.com/file/d/1MLrR8z32-Lz8F4A3IeJCWUlVU9V6g7rm/view?usp=drivesdk" class="btn-link-custom">
-  <span><i class="fas fa-vote-yea me-2"></i>วิธีกาเบอร์</span>
-  <i class="fas fa-chevron-right"></i>
-</a>
+        <div class="mt-5">
+            <div class="d-flex justify-content-center gap-3">
+                <a href="https://www.instagram.com/starmarce__nby/" class="social-icon">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                </div>
+            <p class="small opacity-50 mt-3" style="letter-spacing: 1px;">@starmarce__nby</p>
+        </div>
 
-<a href="แจ้งปัญหา.html" class="btn-link-custom">
-<span><i class="fas fa-calendar-alt me-2"></i>แจ้งปัญหา (Test)</span>
-<i class="fas fa-chevron-right"></i>
-</a>
-
-<a href="เขตบริเวณ.html" class="btn-link-custom">
-<span><i class="fas fa-calendar-alt me-2"></i>เขตบริเวณ (Test)</span>
-<i class="fas fa-chevron-right"></i>
-</a>
-
-<div class="mt-4">
-<p class="small opacity-75 mb-3">Connect with us</p>
-<div class="d-flex justify-content-center gap-3">
-<a href="https://www.instagram.com/starmarce__nby/" class="social-icon"><i class="fab fa-instagram"></i></a>
-</div>
-<p class="small opacity-75 mb-3">starmarce__nby</p>
-</div>
-
-<div class="mt-4 pt-3 border-top border-light border-opacity-25 small opacity-50">
-© 2026 Student Council N.B.Y.
-</div>
-
-</div>
-
-<script>
-const starContainer=document.getElementById("stars");
-for(let i=0;i<60;i++){   // ลดเหลือ 60 ดวงให้ลื่นขึ้น
- let star=document.createElement("div");
- star.className="star";
- star.style.top=Math.random()*100+"%";
- star.style.left=Math.random()*100+"%";
- star.style.animationDuration=(3+Math.random()*4)+"s";
- starContainer.appendChild(star);
-}
-</script>
-
-</body>
+        <div class="mt-4 pt-3 border-top border-light border-opacity-10 small opacity-40">
+            © 2026 Student Council N.B.Y.
+        </div>
+    </div>
+    </body>
 </html>

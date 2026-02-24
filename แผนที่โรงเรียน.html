@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>N.B.Y. Stellar 3D Campus</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        :root {
+            --accent: #38bdf8;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(56, 189, 248, 0.3);
+            --edge-gap: 20px;
+            --safe-top: calc(var(--edge-gap) + env(safe-area-inset-top, 0px));
+        }
+
+        body {
+            margin: 0; padding: 0; overflow: hidden;
+            background: transparent; /* ให้เห็นพื้นหลังดวงดาวจากไฟล์ JS */
+            font-family: 'Kanit', sans-serif;
+            touch-action: none; color: white;
+        }
+
+        /* --- UI Controls --- */
+        .zoom-controls {
+            position: absolute; right: var(--edge-gap); bottom: 40px;
+            display: flex; flex-direction: column; gap: 12px; z-index: 100;
+        }
+
+        .nav-controls {
+            position: absolute; left: var(--edge-gap); bottom: 40px; z-index: 100;
+        }
+
+        .action-btn {
+            width: 55px; height: 55px; background: var(--glass);
+            border: 1px solid var(--border); border-radius: 18px;
+            color: white; font-size: 20px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            transition: 0.3s;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        
+        .nav-toggle { background: var(--accent); color: #000; border: none; width: 65px; height: 65px; border-radius: 22px; }
+        .nav-toggle.active { background: #ef4444; color: white; transform: rotate(45deg); }
+
+        /* --- Navigation Menu --- */
+        #nav-menu {
+            position: absolute; bottom: 125px; left: var(--edge-gap);
+            width: 280px; background: var(--glass);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px; padding: 20px;
+            transform: translateX(-20px) scale(0.9); opacity: 0; pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 90;
+        }
+        #nav-menu.active { transform: translateX(0) scale(1); opacity: 1; pointer-events: auto; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; }
+        .tab-btn {
+            flex: 1; padding: 10px; background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border); border-radius: 12px;
+            color: white; font-size: 0.85rem; cursor: pointer; transition: 0.2s;
+        }
+        .tab-btn.active { background: var(--accent); color: #000; font-weight: 600; }
+
+        .location-list {
+            max-height: 300px; overflow-y: auto; display: none;
+            flex-direction: column; gap: 6px; padding-right: 5px;
+        }
+        .location-list.active { display: flex; }
+        .loc-item {
+            padding: 12px 15px; background: rgba(255,255,255,0.03);
+            border-radius: 14px; cursor: pointer; border: 1px solid transparent;
+            transition: 0.2s; display: flex; align-items: center; gap: 12px; font-size: 0.95rem;
+        }
+        .loc-item:hover { background: rgba(56, 189, 248, 0.15); border-color: var(--accent); }
+        .loc-item i { color: var(--accent); width: 20px; text-align: center; }
+
+        /* --- Info Card --- */
+        #info-card {
+            position: absolute; top: var(--safe-top); left: 50%; transform: translateX(-50%) translateY(-150%);
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 10px 25px; border-radius: 50px; text-align: center;
+            transition: 0.5s; z-index: 100; backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+        #info-card.active { transform: translateX(-50%) translateY(0); }
+
+        canvas { outline: none; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <script src="All/กำลังโหลด.js"></script>
+    <script src="All/ย้อนกลับ.js"></script>
+    <script src="All/พื้นหลัง.js"></script>
+    
+    <div id="info-card">📍 กำลังรับชม: <span id="target-name" style="color:var(--accent); font-weight:600;">-</span></div>
+
+    <div class="nav-controls">
+        <button id="btn-toggle" class="action-btn nav-toggle" onclick="toggleMenu()">
+            <i class="fas fa-location-dot"></i>
+        </button>
+    </div>
+
+    <div class="zoom-controls">
+        <button id="btn-in" class="action-btn"><i class="fas fa-plus"></i></button>
+        <button id="btn-out" class="action-btn"><i class="fas fa-minus"></i></button>
+    </div>
+
+    <div id="nav-menu">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('buildings')">ตึกอาคาร</button>
+            <button class="tab-btn" onclick="switchTab('zones')">เขตพื้นที่</button>
+        </div>
+        
+        <div id="buildings" class="location-list active">
+            <div class="loc-item" onclick="flyTo('หน้าเสาธง')"><i class="fas fa-flag"></i> หน้าเสาธง</div>
+            <div class="loc-item" onclick="flyTo('หอประชุม')"><i class="fas fa-building"></i> หอประชุม</div>
+            <div class="loc-item" onclick="flyTo('ศาลากรีฑา')"><i class="fas fa-running"></i> ศาลากรีฑา</div>
+            <div class="loc-item" onclick="flyTo('สนามฟุตบอล')"><i class="fas fa-futbol"></i> สนามฟุตบอล</div>
+            <div class="loc-item" onclick="flyTo('อาคาร1')"><i class="fas fa-school"></i> อาคาร 1</div>
+            <div class="loc-item" onclick="flyTo('อาคาร2')"><i class="fas fa-school"></i> อาคาร 2</div>
+            <div class="loc-item" onclick="flyTo('อาคาร3')"><i class="fas fa-school"></i> อาคาร 3</div>
+            <div class="loc-item" onclick="flyTo('โรงอาหาร')"><i class="fas fa-utensils"></i> โรงอาหาร</div>
+            <div class="loc-item" onclick="resetHighlight(true)" style="margin-top:10px; color:#ef4444; justify-content:center; border-color: rgba(239, 68, 68, 0.3);">
+                <i class="fas fa-undo"></i> รีเซ็ตมุมมอง
+            </div>
+        </div>
+
+        <div id="zones" class="location-list">
+            <div class="loc-item" onclick="flyTo('สนามฟุตบอล')"><i class="fas fa-futbol"></i> เขตกีฬา</div>
+            <div class="loc-item" onclick="flyTo('โรงจอดรถ1')"><i class="fas fa-car"></i> เขตที่พักครู</div>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        let scene, camera, renderer, controls, model;
+        let zoomDir = 0, currentZoomSpeed = 0;
+        let lastHighlightedObject = null;
+        let originalMaterials = new Map();
+        let initialCameraPos = new THREE.Vector3();
+        let initialTargetPos = new THREE.Vector3();
+
+        init();
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.body.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+            const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+            sun.position.set(200, 500, 200);
+            scene.add(sun);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2.1;
+            controls.minDistance = 40;
+            controls.enableZoom = false;
+
+            const loader = new GLTFLoader();
+            loader.load('school_map.glb', (gltf) => {
+                model = gltf.scene;
+                scene.add(model);
+                
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                
+                initialTargetPos.copy(center);
+                initialCameraPos.set(center.x + 400, center.y + 400, center.z + 400);
+                
+                controls.target.copy(initialTargetPos);
+                camera.position.copy(initialCameraPos);
+                
+                animate();
+            });
+
+            setupZoomEvents();
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function highlightObject(object) {
+            resetHighlight(false); 
+            lastHighlightedObject = object;
+            object.traverse((child) => {
+                if (child.isMesh) {
+                    originalMaterials.set(child, child.material);
+                    child.material = new THREE.MeshStandardMaterial({
+                        color: 0x38bdf8,
+                        emissive: 0x38bdf8,
+                        emissiveIntensity: 0.5,
+                        transparent: true,
+                        opacity: 0.9
+                    });
+                }
+            });
+        }
+
+        window.resetHighlight = (moveCamera = true) => {
+            if (lastHighlightedObject) {
+                lastHighlightedObject.traverse((child) => {
+                    if (child.isMesh && originalMaterials.has(child)) {
+                        child.material = originalMaterials.get(child);
+                    }
+                });
+                originalMaterials.clear();
+                lastHighlightedObject = null;
+                document.getElementById('info-card').classList.remove('active');
+            }
+
+            if (moveCamera) {
+                gsap.to(controls.target, {
+                    x: initialTargetPos.x, y: initialTargetPos.y, z: initialTargetPos.z,
+                    duration: 1.2, ease: "power2.inOut"
+                });
+                gsap.to(camera.position, {
+                    x: initialCameraPos.x, y: initialCameraPos.y, z: initialCameraPos.z,
+                    duration: 1.2, ease: "power2.inOut",
+                    onUpdate: () => controls.update()
+                });
+            }
+        };
+
+        window.toggleMenu = () => {
+            const menu = document.getElementById('nav-menu');
+            const btn = document.getElementById('btn-toggle');
+            const isClosing = menu.classList.contains('active');
+            menu.classList.toggle('active');
+            btn.classList.toggle('active');
+            if (isClosing) resetHighlight(true);
+        };
+
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.location-list').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        };
+
+        window.flyTo = (objectName) => {
+            const targetObj = model.getObjectByName(objectName);
+            if (!targetObj) return;
+
+            highlightObject(targetObj);
+            document.getElementById('target-name').innerText = objectName;
+            document.getElementById('info-card').classList.add('active');
+
+            const targetPos = new THREE.Vector3();
+            targetObj.getWorldPosition(targetPos);
+
+            gsap.to(controls.target, {
+                x: targetPos.x, y: targetPos.y, z: targetPos.z,
+                duration: 1.5, ease: "power3.inOut"
+            });
+            gsap.to(camera.position, {
+                x: targetPos.x + 80, y: targetPos.y + 80, z: targetPos.z + 80,
+                duration: 1.5, ease: "power3.inOut",
+                onUpdate: () => controls.update()
+            });
+
+            if(window.innerWidth < 768) {
+                document.getElementById('nav-menu').classList.remove('active');
+                document.getElementById('btn-toggle').classList.remove('active');
+            }
+        };
+
+        function setupZoomEvents() {
+            const setup = (id, dir) => {
+                const btn = document.getElementById(id);
+                btn.onpointerdown = (e) => { btn.setPointerCapture(e.pointerId); zoomDir = dir; };
+                btn.onpointerup = () => zoomDir = 0;
+            };
+            setup("btn-in", -1); setup("btn-out", 1);
+        }
+
+        function updateZoom() {
+            currentZoomSpeed += (zoomDir * 10.0 - currentZoomSpeed) * 0.2;
+            if (Math.abs(currentZoomSpeed) > 0.01) {
+                const dir = new THREE.Vector3();
+                camera.getWorldDirection(dir);
+                camera.position.addScaledVector(dir, -currentZoomSpeed);
+                controls.update();
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            updateZoom();
+            controls.update();
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

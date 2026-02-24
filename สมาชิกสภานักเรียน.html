@@ -13,7 +13,6 @@
 
     <style>
         :root {
-            --bg: #030712;
             --accent: #38bdf8;
             --border: rgba(255, 255, 255, 0.1);
             --glass: rgba(15, 23, 42, 0.85);
@@ -23,11 +22,10 @@
 
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: var(--bg); color: white; overflow: hidden;
+            color: white; overflow: hidden;
             font-family: 'Sarabun', sans-serif; touch-action: manipulation;
+            /* พื้นหลังจะมาจาก พื้นหลัง.js */
         }
-
-        .universe-bg { position: fixed; inset: 0; background: radial-gradient(circle at center, #0f172a 0%, #030712 100%); z-index: -1; }
 
         /* UI Controls */
         .ui-controls-top {
@@ -35,17 +33,10 @@
             display: flex; flex-direction: column; align-items: flex-end; gap: 15px; z-index: 9999;
         }
 
-        .btn-back {
-            position: fixed; top: var(--safe-top); left: var(--edge-gap); z-index: 9999;
-            height: 48px; background: var(--glass); border: 1px solid var(--border);
-            border-radius: 16px; color: white; display: flex; align-items: center; padding: 0 20px;
-            text-decoration: none; font-size: 15px; font-weight: 600; backdrop-filter: blur(15px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
-
         .search-container {
             height: 48px; background: var(--glass); border: 1px solid var(--border);
-            backdrop-filter: blur(15px); border-radius: 24px;
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-radius: 24px;
             display: flex; align-items: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             max-width: 48px; overflow: hidden; pointer-events: auto;
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
@@ -58,22 +49,22 @@
         .btn-center {
             width: 48px; height: 48px; border-radius: 16px;
             background: var(--glass); border: 1px solid var(--border);
-            color: white; backdrop-filter: blur(15px);
+            color: white; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             display: flex; align-items: center; justify-content: center;
             font-size: 20px; transition: 0.3s; cursor: pointer;
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         }
 
-        /* --- ปรับปรุงส่วน Modal ให้รูปใหญ่ขึ้น --- */
+        /* Modal Details */
         .stellar-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.9);
             display: none; align-items: center; justify-content: center;
             z-index: 10001; opacity: 0; transition: 0.3s ease-out; padding: 20px;
         }
-        .stellar-modal.active { display: flex; opacity: 1; backdrop-filter: blur(15px); }
+        .stellar-modal.active { display: flex; opacity: 1; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); }
         
         .modal-inner {
-            width: 100%; max-width: 400px; /* เพิ่มความกว้างกล่อง */
+            width: 100%; max-width: 400px;
             background: #0f172a; border: 1.5px solid var(--accent); 
             border-radius: 35px; padding: 30px; text-align: center;
             transform: scale(0.85) translateY(30px); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -82,18 +73,14 @@
         .stellar-modal.active .modal-inner { transform: scale(1) translateY(0); }
 
         .compact-portrait { 
-            width: 100%; 
-            max-width: 320px; /* ขยายรูปให้ใหญ่ขึ้น */
-            aspect-ratio: 3/4;
-            object-fit: cover; 
-            border-radius: 25px; 
-            border: 3px solid var(--accent); 
-            margin-bottom: 20px; 
+            width: 100%; max-width: 320px; aspect-ratio: 3/4;
+            object-fit: cover; border-radius: 25px; 
+            border: 3px solid var(--accent); margin-bottom: 20px; 
             box-shadow: 0 15px 35px rgba(0,0,0,0.4);
         }
 
         #mName { font-family: 'Kanit'; font-size: 1.6rem; font-weight: 700; margin: 5px 0; color: white; }
-        #mTitle { color: var(--accent); font-size: 1.1rem; margin-bottom: 20px; font-weight: 400; }
+        #mTitle { color: var(--accent); font-size: 1.1rem; margin-bottom: 20px; font-weight: 400; font-family: 'Kanit'; }
         
         .quote-box {
             background: rgba(255,255,255,0.04); padding: 15px 20px; border-radius: 20px; 
@@ -104,22 +91,18 @@
         .close-btn { 
             width: 100%; padding: 14px; border-radius: 18px; border: none; 
             background: white; color: #030712; font-weight: 700; 
-            margin-top: 25px; cursor: pointer; transition: 0.2s;
+            margin-top: 25px; cursor: pointer; transition: 0.2s; font-family: 'Kanit';
         }
-        .close-btn:active { transform: scale(0.96); }
 
-        #tree { width: 100%; height: 100%; background: transparent !important; }
+        #tree { width: 100%; height: 100%; background: transparent !important; position: relative; z-index: 1; }
         .boc-search { display: none !important; }
     </style>
 </head>
 <body>
-
-    <div class="universe-bg"></div>
-
-    <a href="index.html" class="btn-back">
-        <i class="fas fa-home me-2"></i> หน้าหลัก
-    </a>
-
+    <script src="All/กำลังโหลด.js"></script>
+    <script src="All/ย้อนกลับ.js"></script>
+    <script src="All/พื้นหลัง.js"></script>
+    
     <div class="ui-controls-top">
         <div class="search-container" id="searchBox">
             <i class="fas fa-search" id="searchIcon"></i>
@@ -147,17 +130,13 @@
     <script>
         var chart;
 
-        // Custom Template สำหรับ OrgChart
         OrgChart.templates.stellar = Object.assign({}, OrgChart.templates.ana);
         OrgChart.templates.stellar.size = [180, 285]; 
         OrgChart.templates.stellar.node = '<rect x="0" y="0" height="285" width="180" fill="#1e293b" rx="20" ry="20" stroke="#334155" stroke-width="1"></rect>';
-        
         OrgChart.templates.stellar.img_0 = '<clipPath id="pClip"><rect x="10" y="10" width="160" height="210" rx="14" ry="14"></rect></clipPath><image preserveAspectRatio="xMidYMid slice" clip-path="url(#pClip)" xlink:href="{val}" x="10" y="10" width="160" height="210"></image>';
-        
         OrgChart.templates.stellar.field_1 = '<text style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;" fill="#38bdf8" x="90" y="235" text-anchor="middle">{val}</text>';
         OrgChart.templates.stellar.field_0 = '<text style="font-size: 15px; font-weight: 600;" fill="#ffffff" x="90" y="255" text-anchor="middle">{val}</text>';
         OrgChart.templates.stellar.field_2 = '<text style="font-size: 12px; font-weight: 400;" fill="#94a3b8" x="90" y="272" text-anchor="middle">{val}</text>';
-        
         OrgChart.templates.stellar.plus = '<line x1="10" y1="15" x2="20" y2="15" stroke="#38bdf8" stroke-width="2"></line><line x1="15" y1="10" x2="15" y2="20" stroke="#38bdf8" stroke-width="2"></line>';
         OrgChart.templates.stellar.minus = '<line x1="10" y1="15" x2="20" y2="15" stroke="#64748b" stroke-width="2"></line>';
 
@@ -226,7 +205,6 @@
         // Modal Logic
         chart.on('click', function(sender, args){
             resetSearch();
-            // เช็คว่ากดที่รูปภาพ (image) หรือโหนด
             if (args.event.target.tagName == 'image' || args.event.target.tagName == 'rect') {
                 const node = chart.get(args.node.id);
                 document.getElementById("mImg").src = node.img;
