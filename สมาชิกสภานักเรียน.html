@@ -57,41 +57,126 @@
 
         /* Modal Details */
         .stellar-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            position: fixed; inset: 0; 
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 50%, rgba(15, 23, 42, 0.95) 100%);
             display: none; align-items: center; justify-content: center;
-            z-index: 10001; opacity: 0; transition: 0.3s ease-out; padding: 20px;
+            z-index: 10001; opacity: 0; transition: 0.4s ease-out; 
+            padding: 10vw; /* 20% margin from edges (10% each side) */
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         }
-        .stellar-modal.active { display: flex; opacity: 1; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); }
+        .stellar-modal.active { display: flex; opacity: 1; }
         
         .modal-inner {
-            width: 100%; max-width: 400px;
-            background: #0f172a; border: 1.5px solid var(--accent); 
-            border-radius: 35px; padding: 30px; text-align: center;
-            transform: scale(0.85) translateY(30px); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 50px rgba(56, 189, 248, 0.15);
+            width: 100%; max-width: 500px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0.06) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 35px; padding: 35px 30px; text-align: center;
+            transform: scale(0.8) translateY(40px); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 25px 50px rgba(0, 0, 0, 0.4),
+                0 0 80px rgba(56, 189, 248, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+        }
+        .modal-inner::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(56, 189, 248, 0.02) 50%, transparent 70%);
+            pointer-events: none;
         }
         .stellar-modal.active .modal-inner { transform: scale(1) translateY(0); }
 
         .compact-portrait { 
-            width: 100%; max-width: 320px; aspect-ratio: 3/4;
+            width: 100%; max-width: 350px; aspect-ratio: 3/4;
             object-fit: cover; border-radius: 25px; 
-            border: 3px solid var(--accent); margin-bottom: 20px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2); margin-bottom: 20px; 
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.5),
+                0 0 20px rgba(56, 189, 248, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease;
         }
+        .compact-portrait:hover { transform: scale(1.01); }
 
-        #mName { font-family: 'Kanit'; font-size: 1.6rem; font-weight: 700; margin: 5px 0; color: white; }
-        #mTitle { color: var(--accent); font-size: 1.1rem; margin-bottom: 20px; font-weight: 400; font-family: 'Kanit'; }
+        #mName { 
+            font-family: 'Kanit'; font-size: 2rem; font-weight: 700; 
+            margin: 5px 0 8px 0; color: white; 
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+            -webkit-background-clip: text; background-clip: text;
+            color: transparent; -webkit-text-fill-color: transparent;
+        }
+        #mTitle { 
+            color: rgba(56, 189, 248, 0.7); font-size: 1.3rem; 
+            margin-bottom: 20px; font-weight: 400; font-family: 'Kanit';
+            text-shadow: 0 1px 3px rgba(56, 189, 248, 0.2);
+        }
         
         .quote-box {
-            background: rgba(255,255,255,0.04); padding: 15px 20px; border-radius: 20px; 
-            font-style: italic; font-size: 0.95rem; color: #cbd5e1; 
-            border-left: 5px solid var(--accent); line-height: 1.5; text-align: left;
+            background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+            padding: 15px 20px; border-radius: 20px; 
+            font-style: italic; font-size: 1.1rem; color: rgba(203, 213, 225, 0.85); 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 3px solid rgba(56, 189, 248, 0.3); 
+            line-height: 1.5; text-align: left;
+            position: relative;
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        .quote-box::before {
+            content: '"';
+            position: absolute; top: -8px; left: 12px;
+            font-size: 2.5rem; color: rgba(56, 189, 248, 0.2);
+            font-family: serif;
         }
 
         .close-btn { 
             width: 100%; padding: 14px; border-radius: 18px; border: none; 
-            background: white; color: #030712; font-weight: 700; 
-            margin-top: 25px; cursor: pointer; transition: 0.2s; font-family: 'Kanit';
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.75) 100%);
+            color: #030712; font-weight: 700; 
+            margin-top: 25px; cursor: pointer; transition: all 0.3s ease; 
+            font-family: 'Kanit'; font-size: 1rem;
+            box-shadow: 
+                0 8px 20px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        }
+        .close-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 
+                0 12px 25px rgba(0,0,0,0.25),
+                0 0 20px rgba(56, 189, 248, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+        .close-btn:active { transform: translateY(0); }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .stellar-modal { padding: 8vw; }
+            .modal-inner { padding: 25px 20px; max-width: 400px; }
+            .compact-portrait { max-width: 300px; }
+            #mName { font-size: 1.8rem; }
+            #mTitle { font-size: 1.2rem; }
+            .quote-box { font-size: 1rem; padding: 12px 16px; }
+        }
+        @media (max-width: 480px) {
+            .stellar-modal { padding: 5vw; }
+            .modal-inner { padding: 20px 15px; border-radius: 25px; max-width: 320px; }
+            .compact-portrait { max-width: 250px; }
+            #mName { font-size: 1.6rem; }
+            #mTitle { font-size: 1.1rem; }
+            .quote-box { font-size: 0.95rem; padding: 10px 14px; }
+        }
+        @media (max-width: 360px) {
+            .stellar-modal { padding: 4vw; }
+            .modal-inner { padding: 18px 12px; max-width: 280px; }
+            .compact-portrait { max-width: 220px; }
+            #mName { font-size: 1.4rem; }
+            #mTitle { font-size: 1rem; }
+            .quote-box { font-size: 0.9rem; padding: 8px 12px; }
         }
 
         #tree { width: 100%; height: 100%; background: transparent !important; position: relative; z-index: 1; }
@@ -205,7 +290,7 @@
         // Modal Logic
         chart.on('click', function(sender, args){
             resetSearch();
-            if (args.event.target.tagName == 'image' || args.event.target.tagName == 'rect') {
+            if (args.event.target.tagName == 'image') {
                 const node = chart.get(args.node.id);
                 document.getElementById("mImg").src = node.img;
                 document.getElementById("mName").innerText = node.name;
@@ -216,6 +301,10 @@
                 modal.style.display = "flex";
                 setTimeout(() => modal.classList.add("active"), 50);
                 return false; 
+            }
+            // ถ้าคลิกที่ rect (ขอบนอก) จะให้ทำการ expand/collapse ตามปกติ
+            if (args.event.target.tagName == 'rect') {
+                return true; // ให้ทำการ expand/collapse ตามปกติ
             }
         });
 
