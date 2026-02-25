@@ -1,4 +1,4 @@
-// ฐานข้อมูล.js
+// All/ฐานข้อมูล.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
 import { 
     getFirestore, 
@@ -7,10 +7,11 @@ import {
     query, 
     orderBy, 
     onSnapshot, 
-    serverTimestamp 
+    serverTimestamp,
+    limit
 } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-// การตั้งค่า Firebase จากโค้ดต้นฉบับของคุณ
+// การตั้งค่า Firebase ของคุณ
 const firebaseConfig = {
     apiKey: "AIzaSyCsBzUXKm_421QMAj2UG8IZYDiFLgc8vfw",
     authDomain: "student-council-nby-68.firebaseapp.com",
@@ -25,37 +26,66 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 /**
- * DatabaseAPI: รวบรวมฟังก์ชันการทำงานกับฐานข้อมูล
- * เพื่อให้หน้าเว็บอื่นๆ เรียกใช้งานผ่านตัวแปรเดียว
+ * DatabaseAPI: ศูนย์กลางการจัดการข้อมูลทุกหน้าเว็บ
+ * จัดการให้ง่ายขึ้นโดยรวม Logic ไว้ที่เดียว
  */
 export const DatabaseAPI = {
     
+    // ==========================================
+    // ส่วนที่ 1: สำหรับหน้า "แจ้งปัญหา" (Complaints)
+    // ==========================================
+    
     /**
-     * สำหรับส่งปัญหาใหม่เข้าฐานข้อมูล
-     * @param {string} detail - รายละเอียดของปัญหา
+     * ส่งปัญหาใหม่
+     * @param {string} detail - รายละเอียด
+     * @param {string} refLink - ลิงก์อ้างอิง (เพิ่มเข้ามาใหม่)
      */
-    async submitComplaint(detail) {
+    async submitComplaint(detail, refLink = "") {
         return await addDoc(collection(db, "complaints"), {
             detail: detail,
-            status: "ยังไม่ได้แก้ไข", // สถานะเริ่มต้น
+            refLink: refLink,         // เก็บลิงก์อ้างอิง
+            status: "ยังไม่ได้แก้ไข",
             adminReply: "",
-            timestamp: serverTimestamp() // ใช้เวลาจาก Server
+            timestamp: serverTimestamp()
         });
     },
 
     /**
-     * สำหรับดึงข้อมูลปัญหาแบบ Real-time
-     * @param {function} callback - ฟังก์ชันที่จะทำงานเมื่อข้อมูลมีการเปลี่ยนแปลง
+     * ติดตามรายการแจ้งปัญหาแบบ Real-time
      */
     listenToComplaints(callback) {
         const q = query(
             collection(db, "complaints"), 
-            orderBy("timestamp", "desc") // เรียงจากใหม่ไปเก่า
+            orderBy("timestamp", "desc")
         );
         return onSnapshot(q, callback);
-    }
+    },
 
-    // ในอนาคตคุณสามารถเพิ่มฟังก์ชันอื่นๆ เช่น
-    // listenToNews(callback) { ... }
-    // หรือ submitVote(data) { ... } ที่นี่ได้เลย
+
+    // ==========================================
+    // ส่วนที่ 2: สำหรับหน้าอื่นๆ ในอนาคต (ตัวอย่างการขยาย)
+    // ==========================================
+
+    /**
+     * ตัวอย่าง: สำหรับดึงข้อมูลข่าวสาร (ถ้าอนาคตมีหน้าข่าว)
+     */
+    listenToNews(callback) {
+        const q = query(
+            collection(db, "news"), 
+            orderBy("timestamp", "desc"),
+            limit(10)
+        );
+        return onSnapshot(q, callback);
+    },
+
+    /**
+     * ตัวอย่าง: สำหรับส่งคะแนนโหวต
+     */
+    async submitVote(topicId, choice) {
+        return await addDoc(collection(db, "votes"), {
+            topicId: topicId,
+            choice: choice,
+            timestamp: serverTimestamp()
+        });
+    }
 };
