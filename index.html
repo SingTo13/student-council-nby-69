@@ -2,196 +2,182 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Portal | สภานักเรียน NBY</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;400;600&family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --accent: #38bdf8;
-            --glass-base: rgba(255, 255, 255, 0.05); 
-            --glass-border: rgba(255, 255, 255, 0.12);
+            --crystal-clear: rgba(255, 255, 255, 0.05); 
+            --btn-glass: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.15);
             --curve: cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         body {
             margin: 0;
-            min-height: 100dvh;
+            min-height: 100vh;
             font-family: 'Sarabun', sans-serif;
-            color: #f8fafc;
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #020617; 
-            padding: clamp(20px, 5vh, 40px);
             overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
+            padding: 20px;
+            background: #020617; 
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ===== Main Portal Card (Clean Glass) ===== */
+        /* ===== Portal Card (Double Layer Frosted Glass) ===== */
         .portal-card {
             width: 100%;
-            max-width: min(95%, 1150px); 
-            padding: clamp(50px, 10vh, 90px) clamp(25px, 5vw, 65px);
-            
-            background: var(--glass-base);
-            backdrop-filter: blur(40px) saturate(180%);
-            -webkit-backdrop-filter: blur(40px) saturate(180%);
-            
-            /* ขอบเนียนบาง สไตล์ High-Tech */
-            border: 1px solid var(--glass-border);
-            border-radius: clamp(40px, 5vw, 60px);
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
-            
+            max-width: 420px;
+            padding: 50px 30px 35px;
             position: relative;
+            background: var(--crystal-clear);
+            /* เบลอชั้นที่ 1 */
+            backdrop-filter: blur(15px) saturate(160%);
+            -webkit-backdrop-filter: blur(15px) saturate(160%);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* ลบเอฟเฟกต์ ::after ที่เป็นสีขาวๆ ออกแล้ว */
+            z-index: 2;
+            overflow: hidden;
+            animation: fadeIn 1s var(--curve);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Diamond Shine Effect */
+        .portal-card::after {
+            content: "";
+            position: absolute;
+            top: -100%;
+            left: -150%;
+            width: 50%;
+            height: 300%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transform: rotate(35deg);
+            animation: diamondShine 8s infinite;
+        }
+
+        @keyframes diamondShine {
+            0% { left: -150%; }
+            20% { left: 150%; }
+            100% { left: 150%; }
         }
 
         .school-logo {
-            width: clamp(85px, 11vw, 105px);
-            filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.4));
-            margin-bottom: 30px;
-            animation: float 6s ease-in-out infinite;
+            width: 90px;
+            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4));
+            margin-bottom: 20px;
+            transition: 0.5s var(--curve);
         }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .portal-card:hover .school-logo { transform: scale(1.05) rotate(3deg); }
 
-        /* ตัวหนังสือพรีเมียม */
         h2 { 
             font-family: 'Kanit'; 
-            font-weight: 600;
-            font-size: clamp(2.4rem, 6vw, 3.8rem);
-            margin-bottom: 8px;
-            letter-spacing: -1px;
-            background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
-            -webkit-background-clip: text; 
+            font-weight: 600; 
+            font-size: 1.8rem;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            /* เพิ่มเงาจางๆ ให้ตัวหนังสือดูลอยออกมา */
-            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+            margin-bottom: 4px;
         }
 
         .tag-line {
-            font-family: 'Kanit'; 
-            font-weight: 200; /* ใช้ตัวบางเพื่อให้ตัดกับหัวข้อ */
-            font-size: clamp(0.75rem, 2vw, 0.95rem);
-            letter-spacing: 8px; 
+            font-family: 'Kanit';
+            font-size: 0.7rem;
+            letter-spacing: 4px;
             color: var(--accent);
-            text-transform: uppercase; 
-            margin-bottom: clamp(45px, 7vh, 75px);
-            opacity: 0.9;
-            text-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+            text-transform: uppercase;
+            opacity: 0.8;
+            margin-bottom: 35px;
         }
 
-        /* ===== Adaptive Grid ===== */
-        .menu-group {
-            width: 100%;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-            gap: 22px;
-            justify-content: center;
-        }
-
-        /* ===== Buttons Typography & Style ===== */
+        /* ===== Link Buttons (Frosted Button) ===== */
         .btn-link-custom {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            padding: 24px;
-            border-radius: 30px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(15px);
-            text-decoration: none;
-            color: rgba(255,255,255,0.9);
-            transition: all 0.5s var(--curve);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-link-custom span {
+            padding: 16px 22px;
+            margin-bottom: 14px;
+            border-radius: 20px;
             font-family: 'Kanit';
-            font-weight: 400;
-            font-size: 1rem;
-            letter-spacing: 0.5px;
+            font-size: 0.95rem;
+            text-decoration: none;
+            background: var(--btn-glass);
+            color: rgba(255,255,255,0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            /* เบลอชั้นที่ 2 */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.4s var(--curve);
         }
 
-        @media (min-width: 768px) {
-            .btn-link-custom {
-                flex-direction: column;
-                justify-content: center;
-                height: 170px;
-                text-align: center;
-            }
-            .btn-link-custom i.main-icon {
-                margin-right: 0 !important;
-                margin-bottom: 20px;
-                font-size: 2.8rem !important;
-            }
-            .btn-link-custom span { font-size: 1.1rem; }
-            .btn-link-custom i.fa-chevron-right { display: none; }
-        }
-
-        @media (max-width: 767px) {
-            .btn-link-custom { height: 78px; padding: 0 28px; border-radius: 24px; }
-            .btn-link-custom i.main-icon { font-size: 1.5rem !important; }
-        }
-
-        .btn-link-custom i.main-icon {
-            color: var(--color);
-            filter: drop-shadow(0 0 10px var(--color));
-            transition: 0.5s;
-        }
-
-        /* Hover Interaction */
         .btn-link-custom:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--color);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            transform: translate3d(0, -4px, 0);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), inset 0 0 10px var(--accent-color);
             color: #fff;
         }
 
-        .btn-link-custom:hover i.main-icon {
-            transform: scale(1.1) rotate(-3deg);
-            filter: drop-shadow(0 0 20px var(--color)) brightness(1.2);
+        .btn-link-custom i.fa-chevron-right {
+            font-size: 0.7rem;
+            opacity: 0.2;
+            transition: 0.4s;
         }
 
-        /* Footer */
+        .btn-link-custom:hover i.fa-chevron-right {
+            opacity: 1;
+            transform: translateX(4px);
+            color: var(--accent-color);
+        }
+
+        /* ===== Footer Section ===== */
         .footer-section {
-            width: 100%;
-            margin-top: 65px;
-            padding-top: 45px;
+            margin-top: 30px;
+            padding-top: 25px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .social-link {
-            display: inline-flex; align-items: center; gap: 12px;
-            text-decoration: none; color: #fff;
-            background: rgba(255, 255, 255, 0.05); padding: 14px 32px;
-            border-radius: 50px; border: 1px solid var(--glass-border);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
             transition: 0.3s;
-            font-family: 'Kanit';
-            font-weight: 400;
-            font-size: 0.85rem;
-            letter-spacing: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            border-radius: 15px;
+            border: 1px solid var(--glass-border);
+            font-size: 0.8rem;
+            font-weight: 600;
         }
 
-        .social-link:hover { 
-            background: #fff; color: #000; transform: translateY(-3px); 
-            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        .social-link:hover {
+            background: #fff;
+            color: #000;
+            transform: translateY(-2px);
         }
 
-        .copyright { 
-            margin-top: 30px; 
-            font-size: 0.65rem; 
-            opacity: 0.3; 
-            letter-spacing: 5px;
-            font-weight: 300;
+        .copyright {
+            margin-top: 20px;
+            font-size: 0.55rem;
+            opacity: 0.3;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -200,43 +186,37 @@
     <script src="All/กำลังโหลด.js"></script>
 
     <div class="portal-card">
-        <div class="header-area">
-            <div class="logo-container">
-                <img src="โลโก้/SmNBY.webp" class="school-logo" alt="Logo">
-            </div>
-            <h2>สภานักเรียน</h2>
-            <p class="tag-line">N.B.Y. Stellar Council</p>
+        <div class="logo-container">
+            <img src="โลโก้/SmNBY.webp" class="school-logo" alt="Logo">
         </div>
 
+        <h2>สภานักเรียน</h2>
+        <p class="tag-line">N.B.Y. Student Council</p>
+
         <div class="menu-group">
-            <a href="https://www.nby.ac.th/mainpage" class="btn-link-custom" style="--color: #0ea5e9;">
-                <i class="fas fa-university main-icon me-3"></i>
-                <span>เว็บไซต์โรงเรียน</span>
-                <i class="fas fa-chevron-right ms-auto"></i>
+            <a href="https://www.nby.ac.th/mainpage" class="btn-link-custom" style="--accent-color: #0ea5e9;">
+                <span><i class="fas fa-university me-3" style="color: #0ea5e9;"></i>เว็บไซต์โรงเรียน</span>
+                <i class="fas fa-chevron-right"></i>
             </a>
 
-            <a href="สมาชิกสภานักเรียน.html" class="btn-link-custom" style="--color: #a855f7;">
-                <i class="fas fa-id-badge main-icon me-3"></i>
-                <span>สมาชิกสภานักเรียน</span>
-                <i class="fas fa-chevron-right ms-auto"></i>
+            <a href="สมาชิกสภานักเรียน.html" class="btn-link-custom" style="--accent-color: #8b5cf6;">
+                <span><i class="fas fa-id-badge me-3" style="color: #8b5cf6;"></i>สมาชิกสภานักเรียน</span>
+                <i class="fas fa-chevron-right"></i>
             </a>
 
-            <a href="นโยบาย.html" class="btn-link-custom" style="--color: #fbbf24;">
-                <i class="fas fa-star main-icon me-3"></i>
-                <span>นโยบายสภา</span>
-                <i class="fas fa-chevron-right ms-auto"></i>
+            <a href="นโยบาย.html" class="btn-link-custom" style="--accent-color: #fbbf24;">
+                <span><i class="fas fa-star me-3" style="color: #fbbf24;"></i>นโยบาย</span>
+                <i class="fas fa-chevron-right"></i>
             </a>
 
-            <a href="แจ้งปัญหา.html" class="btn-link-custom" style="--color: #10b981;">
-                <i class="fas fa-shield-alt main-icon me-3"></i>
-                <span>แจ้งปัญหานักเรียน</span>
-                <i class="fas fa-chevron-right ms-auto"></i>
+            <a href="แจ้งปัญหา.html" class="btn-link-custom" style="--accent-color: #10b981;">
+                <span><i class="fas fa-shield-alt me-3" style="color: #10b981;"></i>แจ้งปัญหา</span>
+                <i class="fas fa-chevron-right"></i>
             </a>
 
-            <a href="แผนที่โรงเรียน.html" class="btn-link-custom" style="--color: #f43f5e;">
-                <i class="fas fa-compass main-icon me-3"></i>
-                <span>แผนที่โรงเรียน</span>
-                <i class="fas fa-chevron-right ms-auto"></i>
+            <a href="แผนที่โรงเรียน.html" class="btn-link-custom" style="--accent-color: #ef4444;">
+                <span><i class="fas fa-compass me-3" style="color: #ef4444;"></i>แผนที่โรงเรียน</span>
+                <i class="fas fa-chevron-right"></i>
             </a>
         </div>
 
@@ -246,7 +226,7 @@
                 <span>@STARMARCE__NBY</span>
             </a>
             <div class="copyright">
-                © 2026 STUDENT COUNCIL N.B.Y. | ALL SYSTEMS STELLAR
+                © 2026 STUDENT COUNCIL N.B.Y. | STELLAR
             </div>
         </div>
     </div>
