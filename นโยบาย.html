@@ -12,12 +12,12 @@
     <style>
         :root {
             --accent: #38bdf8;
-            --glass-card: rgba(255, 255, 255, 0.04);
-            --glass-modal: rgba(15, 23, 42, 0.5); /* ปรับให้ใสขึ้นเพื่อเห็นฝ้า */
-            --border-light: rgba(255, 255, 255, 0.15);
-            --curve: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --glass-card: rgba(255, 255, 255, 0.03);
+            /* สี Modal พื้นฐานที่มีความใสสูง */
+            --glass-modal-bg: rgba(15, 23, 42, 0.4); 
+            --border-light: rgba(255, 255, 255, 0.12);
+            --curve: cubic-bezier(0.2, 0.8, 0.2, 1);
             
-            /* หมวดหมู่สี */
             --color-rights: #38bdf8;
             --color-clean: #4ade80;
             --color-news: #fbbf24;
@@ -31,110 +31,106 @@
             min-height: 100vh;
             background: #020617;
             margin: 0;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
 
         /* --- Header --- */
-        .header-section { padding: 110px 20px 40px; text-align: center; }
+        .header-section { padding: 100px 20px 40px; text-align: center; }
         .header-title { 
-            font-family: 'Kanit'; font-size: clamp(1.8rem, 8vw, 2.8rem); font-weight: 700;
-            background: linear-gradient(to bottom, #fff, var(--accent));
+            font-family: 'Kanit'; font-size: clamp(2rem, 8vw, 3rem); font-weight: 700;
+            background: linear-gradient(180deg, #fff 30%, var(--accent));
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.2));
         }
 
         /* --- Policy Grid --- */
         .policy-grid {
             display: grid; grid-template-columns: repeat(2, 1fr);
-            gap: 15px; max-width: 900px; margin: 0 auto; padding: 0 20px 100px;
+            gap: 16px; max-width: 900px; margin: 0 auto; padding: 0 20px 120px;
         }
-        @media (min-width: 768px) { .policy-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
+        @media (min-width: 768px) { .policy-grid { grid-template-columns: repeat(4, 1fr); gap: 24px; } }
 
         .policy-card-small {
             background: var(--glass-card); border: 1px solid var(--border-light);
-            border-radius: 30px; padding: 25px 15px; text-align: center;
+            border-radius: 28px; padding: 28px 16px; text-align: center;
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            transition: all 0.4s var(--curve);
-            opacity: 0; transform: scale(0.9) translateY(20px);
+            transition: all 0.5s var(--curve);
+            opacity: 0; transform: translate3d(0, 30px, 0);
             cursor: pointer;
         }
-        .policy-card-small.show { opacity: 1; transform: scale(1) translateY(0); }
+        .policy-card-small.show { opacity: 1; transform: translate3d(0, 0, 0); }
 
         .policy-card-small:hover {
-            transform: translateY(-8px) scale(1.05);
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--card-color, var(--accent));
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            transform: translate3d(0, -10px, 0) scale(1.03);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--card-color);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
-        .card-icon { 
-            font-size: 32px; color: var(--card-color, var(--accent)); margin-bottom: 12px;
-            filter: drop-shadow(0 0 12px var(--card-color));
-        }
+        .card-icon { font-size: 30px; color: var(--card-color); margin-bottom: 14px; filter: drop-shadow(0 0 8px var(--card-color)); }
+        .card-title-short { font-family: 'Kanit'; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9); }
 
-        .card-title-short {
-            font-family: 'Kanit'; font-size: 14px; font-weight: 600;
-            margin: 0; color: #fff; line-height: 1.3;
-        }
-
-        /* --- Stellar Glass Modal (ปรับแต่งใหม่) --- */
+        /* --- Stellar Glass Modal (เอฟเฟกต์กระจกขุ่นทะลุ) --- */
         .policy-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+            position: fixed; inset: 0; 
+            background: rgba(0, 0, 0, 0.2); /* พื้นหลังดำจางๆ เพื่อให้กระจกดูเด่น */
             display: none; align-items: center; justify-content: center;
-            z-index: 10001; padding: 25px; opacity: 0; transition: 0.4s;
+            z-index: 10001; padding: 20px; opacity: 0; transition: 0.4s ease;
+            /* เบลอชั้นที่ 1: พื้นหลังทั้งหมด */
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
         }
+
         .policy-modal.active { 
             display: flex; opacity: 1; 
-            backdrop-filter: blur(30px) saturate(160%); /* เพิ่มความฝ้าและสดของสี */
-            -webkit-backdrop-filter: blur(30px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
         }
 
         .modal-inner {
-            width: 100%; max-width: 420px;
-            max-height: 80vh; /* ล็อกความสูงไม่ให้หลุดขอบจอ */
-            background: var(--glass-modal);
+            width: 100%; max-width: 400px;
+            /* สีขาวจางๆ เหมือนผิวเนื้อกระจก */
+            background: rgba(255, 255, 255, 0.06); 
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 45px; padding: 45px 30px 35px;
+            border-radius: 40px; padding: 40px 24px;
             text-align: center; position: relative;
-            transform: scale(0.85) translateY(40px); transition: 0.5s var(--curve);
-            overflow-y: auto; /* เลื่อนอ่านได้ถ้านโยบายยาว */
-            scrollbar-width: none; 
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3), 0 0 40px rgba(255,255,255,0.05);
+            transform: translate3d(0, 50px, 0) scale(0.9); 
+            transition: 0.5s var(--curve);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            /* เบลอชั้นที่ 2: ตัวการ์ดเอง */
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
         }
-        .modal-inner::-webkit-scrollbar { display: none; }
         
-        .policy-modal.active .modal-inner { transform: scale(1) translateY(0); }
+        .policy-modal.active .modal-inner { transform: translate3d(0, 0, 0) scale(1); }
 
         .m-icon-large { 
-            width: 75px; height: 75px; background: rgba(255,255,255,0.06);
+            width: 80px; height: 80px; background: rgba(255,255,255,0.05);
             border-radius: 24px; display: flex; align-items: center; justify-content: center;
-            font-size: 35px; color: var(--m-color); margin: 0 auto 15px;
+            font-size: 36px; color: var(--m-color); margin: 0 auto 20px;
             border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            box-shadow: inset 0 0 15px var(--m-color);
         }
         
         .m-tag { 
-            display: inline-block; padding: 6px 16px; background: var(--m-color);
-            color: #020617; border-radius: 12px; font-weight: 700; font-size: 11px;
-            margin-bottom: 18px; text-transform: uppercase; font-family: 'Kanit';
-            letter-spacing: 0.5px;
+            display: inline-block; padding: 5px 14px; background: var(--m-color);
+            color: #020617; border-radius: 10px; font-weight: 700; font-size: 10px;
+            margin-bottom: 12px; text-transform: uppercase; font-family: 'Kanit';
         }
 
         .m-desc { 
-            line-height: 1.8; font-size: 15px; margin-top: 10px; 
-            color: #f1f5f9; padding: 25px; background: rgba(255,255,255,0.03); 
-            border-radius: 30px; text-align: left; border: 1px solid rgba(255,255,255,0.1);
+            line-height: 1.7; font-size: 15px; margin-top: 15px; 
+            color: #e2e8f0; padding: 20px; background: rgba(0,0,0,0.2); 
+            border-radius: 25px; text-align: left; border: 1px solid rgba(255,255,255,0.05);
         }
 
         .btn-close-policy {
-            width: 100%; max-width: 250px; padding: 14px; background: #fff; color: #020617;
-            border: none; border-radius: 20px; font-weight: 700; margin-top: 30px;
+            width: 100%; padding: 16px; background: #fff; color: #020617;
+            border: none; border-radius: 20px; font-weight: 700; margin-top: 25px;
             font-family: 'Kanit'; cursor: pointer; transition: 0.3s;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
-        .btn-close-policy:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(0,0,0,0.2); }
-        .btn-close-policy:active { transform: translateY(0); }
     </style>
 </head>
 <body>
@@ -144,16 +140,16 @@
     
     <div class="header-section">
         <h1 class="header-title">นโยบายสภานักเรียน</h1>
-        <p style="opacity: 0.5; font-size: 11px; letter-spacing: 3px; text-transform: uppercase;">Building N.B.Y. Future Together</p>
+        <p style="opacity: 0.6; font-size: 10px; letter-spacing: 4px; text-transform: uppercase;">Stellar Council • N.B.Y.</p>
     </div>
 
     <div class="policy-grid" id="grid"></div>
 
     <div class="policy-modal" id="policyModal" onclick="closePolicy()">
-        <div class="modal-inner" onclick="event.stopPropagation()">
+        <div class="modal-inner" id="modalInner" onclick="event.stopPropagation()">
             <div id="mIcon" class="m-icon-large"></div>
             <span id="mTag" class="m-tag">TAG</span>
-            <h3 id="mTitle" style="font-family: 'Kanit'; font-weight: 700; margin-bottom: 5px;">Title</h3>
+            <h3 id="mTitle" style="font-family: 'Kanit'; font-weight: 700; font-size: 1.5rem;">Title</h3>
             <div id="mDesc" class="m-desc">Description</div>
             <button class="btn-close-policy" onclick="closePolicy()">รับทราบข้อมูล</button>
         </div>
@@ -161,54 +157,46 @@
 
     <script>
         const policies = [
-            { title: "เกรดดี มีทรงเท่", tag: "สิทธิ์ของนักเรียน", color: "var(--color-rights)", icon: 'cut', desc: "เกรดแลกทรงผม: เมื่อเรียนได้เกรด 3.00 ขึ้นไป จะได้รับสิทธิ์ทำทรงผมที่เปิดกว้างและอิสระมากขึ้น เพื่อพิสูจน์ว่า 'บุคลิกภายนอกไม่ใช่อุปสรรคต่อการเรียนรู้' " },
-            { title: "เสียงเธอมีค่า", tag: "สิทธิ์ของนักเรียน", color: "var(--color-rights)", icon: 'comment-dots', desc: "พื้นที่รับฟัง: เปิดช่องทางแจ้งปัญหาหรือข้อเสนอแนะผ่าน Google Forms แบบไม่เปิดเผยตัวตน เพื่อการพัฒนาโรงเรียนอย่างตรงจุด" },
-            { title: "รู้ก่อน ไม่พลาด", tag: "ประชาสัมพันธ์", color: "var(--color-news)", icon: 'bullhorn', desc: "อัปเดตข่าวสาร: แจ้งกิจกรรม Open House, ค่ายเก็บพอร์ต และการแข่งขันต่างๆ ทั้งในและนอกโรงเรียนให้เข้าถึงทุกคนอย่างรวดเร็ว" },
-            { title: "ห้องน้ำใส่ใจ", tag: "ความสะอาด", color: "var(--color-clean)", icon: 'hand-holding-heart', desc: "ใส่ใจสุขอนามัย: จัดเตรียมกระดาษสำหรับห่อผ้าอนามัยในห้องน้ำหญิง เพื่อความเป็นระเบียบและความสะอาดของพื้นที่ส่วนรวม" },
-            { title: "เข้าเถอะ เดี๋ยวมีให้", tag: "ความสะอาด", color: "var(--color-clean)", icon: 'scroll', desc: "ความสะดวกพื้นฐาน: จัดสรรงบประมาณเพิ่มกระดาษชำระในห้องน้ำนักเรียนให้เพียงพอและสม่ำเสมอ" },
-            { title: "หอมจนอยากเข้า", tag: "ความสะอาด", color: "var(--color-clean)", icon: 'wind', desc: "อากาศบริสุทธิ์: ดำเนินการปรับปรุงระบบระบายอากาศและเพิ่มตัวช่วยขจัดกลิ่นไม่พึงประสงค์ในห้องน้ำทุกจุด" },
-            { title: "เรียนก็เรียน เล่นก็เอา", tag: "นันทนาการ", color: "var(--color-fun)", icon: 'masks-theater', desc: "กิจกรรมสร้างสรรค์: จัดกิจกรรมนันทนาการตามเทศกาลสำคัญ เช่น วันคริสต์มาส, วันภาษาไทย, วันวิทยาศาสตร์ เพื่อสร้างความสุขในรั้วโรงเรียน" },
-            { title: "สภาสื่อรัก", tag: "นันทนาการ", color: "var(--color-fun)", icon: 'heart', desc: "พื้นที่บอกรัก: กิจกรรมพิเศษเฉพาะช่วงวาเลนไทน์ เป็นสื่อกลางส่งต่อความรู้สึกดีๆ และมิตรภาพระหว่างพี่น้องเพื่อนพ้อง" },
-            { title: "สมุดต้องปัง", tag: "นันทนาการ", color: "var(--color-fun)", icon: 'pen-fancy', desc: "โชว์ไอเดีย: กิจกรรมการประกวดออกแบบปกสมุดโรงเรียนให้น่าใช้งาน โดยใช้ผลงานที่ชนะการประกวดมาใช้จริง" },
-            { title: "สายอาร์ตอย่าซ่อนของ", tag: "นันทนาการ", color: "var(--color-fun)", icon: 'palette', desc: "พื้นที่แสดงศิลปะ: การประกวดวาดภาพโปสเตอร์ตามวันสำคัญต่างๆ เพื่อให้นักเรียนสายอาร์ตได้โชว์ศักยภาพอย่างเต็มที่" },
-            { title: "ของดีต้องไปต่อ", tag: "นันทนาการ", color: "var(--color-fun)", icon: 'arrow-rotate-right', desc: "สืบสานคุณภาพ: สานต่อนโยบายรุ่นพี่ที่เป็นประโยชน์และได้รับความนิยม เช่น N.B.Y. Market ตลาดนัดนักเรียน" },
-            { title: "สภาลงมือ ไม่ใช่ลงรูป", tag: "จิตอาสา", color: "var(--color-volunteer)", icon: 'hands-helping', desc: "สภาปฏิบัติการ: เน้นการทำงานจริงด้วยจิตอาสา เช่น กิจกรรมร่วมใจทำความสะอาดโรงเรียนและห้องน้ำเป็นประจำทุกสิ้นเดือน" }
+            { title: "เกรดดี มีทรงเท่", tag: "สิทธิ์ของนักเรียน", color: "var(--color-rights)", icon: 'cut', desc: "เกรดแลกทรงผม: เมื่อเรียนได้เกรด 3.00 ขึ้นไป จะได้รับสิทธิ์ทำทรงผมที่เปิดกว้างและอิสระมากขึ้น เพื่อพิสูจน์ว่าบุคลิกภาพที่ดีไม่ได้ขัดขวางการเรียนรู้" },
+            { title: "เสียงเธอมีค่า", tag: "สิทธิ์ของนักเรียน", color: "var(--color-rights)", icon: 'comment-dots', desc: "พื้นที่รับฟัง: ช่องทางแจ้งปัญหาหรือข้อเสนอแนะผ่านระบบออนไลน์แบบปกปิดตัวตน เพื่อให้ทุกเสียงได้รับการแก้ไขอย่างจริงใจ" },
+            { title: "รู้ก่อน ไม่พลาด", tag: "ประชาสัมพันธ์", color: "var(--color-news)", icon: 'bullhorn', desc: "อัปเดตข่าวสาร: สรุปกิจกรรม Open House, ค่ายอาสา และการแข่งขันต่างๆ ส่งตรงถึงมือนักเรียนทุกคนผ่านแพลตฟอร์มดิจิทัล" },
+            { title: "ห้องน้ำใส่ใจ", tag: "ความสะอาด", color: "var(--color-clean)", icon: 'hand-holding-heart', desc: "ใส่ใจสุขอนามัย: บริการถุงห่อผ้าอนามัยในห้องน้ำหญิง เพื่อยกระดับความสะอาดและความเป็นระเบียบของสถานศึกษา" },
+            { title: "เข้าเถอะ เดี๋ยวมีให้", tag: "ความสะอาด", color: "var(--color-clean)", icon: 'scroll', desc: "ความสะดวกพื้นฐาน: จัดสรรงบประมาณดูแลวัสดุสิ้นเปลืองในห้องน้ำให้นักเรียนมีใช้งานอย่างต่อเนื่องและสม่ำเสมอ" },
+            { title: "หอมจนอยากเข้า", tag: "ความสะอาด", color: "var(--color-clean)", icon: 'wind', desc: "อากาศบริสุทธิ์: ติดตั้งระบบขจัดกลิ่นและปรับปรุงการถ่ายเทอากาศในห้องน้ำ เพื่อสุขอนามัยที่ดีของทุกคน" },
+            { title: "เรียนก็เรียน เล่นก็เอา", tag: "นันทนาการ", color: "var(--color-fun)", icon: 'masks-theater', desc: "กิจกรรมสร้างสรรค์: ปรับปรุงกิจกรรมวันสำคัญให้ทันสมัย มีส่วนร่วมได้จริง สร้างบรรยากาศการเรียนรู้ที่สนุกสนาน" },
+            { title: "สภาสื่อรัก", tag: "นันทนาการ", color: "var(--color-fun)", icon: 'heart', desc: "พื้นที่บอกรัก: กิจกรรมส่งต่อความรู้สึกดีๆ ในเทศกาลแห่งความรัก เป็นสื่อกลางเชื่อมความสัมพันธ์ที่งดงามในโรงเรียน" },
+            { title: "สมุดต้องปัง", tag: "นันทนาการ", color: "var(--color-fun)", icon: 'pen-fancy', desc: "โชว์ไอเดีย: เปิดพื้นที่ให้นักเรียนออกแบบปกสมุดโรงเรียนประจำปี ผลงานที่ได้รับคัดเลือกจะถูกนำไปผลิตใช้งานจริง" },
+            { title: "สายอาร์ตอย่าซ่อนของ", tag: "นันทนาการ", color: "var(--color-fun)", icon: 'palette', desc: "พื้นที่แสดงศิลปะ: จัดแสดงผลงานศิลปะและประกวดวาดภาพตามเทศกาลต่างๆ สนับสนุนทุกความสามารถอย่างเต็มที่" },
+            { title: "ของดีต้องไปต่อ", tag: "นันทนาการ", color: "var(--color-fun)", icon: 'arrow-rotate-right', desc: "สืบสานคุณภาพ: ต่อยอดกิจกรรมที่นักเรียนชื่นชอบจากรุ่นสู่รุ่น เช่น N.B.Y. Market เพื่อกระตุ้นทักษะการเป็นผู้ประกอบการ" },
+            { title: "สภาลงมือ ไม่ใช่ลงรูป", tag: "จิตอาสา", color: "var(--color-volunteer)", icon: 'hands-helping', desc: "สภาปฏิบัติการ: ทีมสภาและจิตอาสาลงพื้นที่ดูแลความเรียบร้อยและช่วยเหลือเพื่อนนักเรียนด้วยการกระทำที่เห็นผลจริง" }
         ];
 
-        // Render Cards
         const grid = document.getElementById('grid');
+        const modal = document.getElementById('policyModal');
+        const modalInner = document.getElementById('modalInner');
+
         policies.forEach((p, i) => {
             const card = document.createElement('div');
             card.className = 'policy-card-small';
             card.style.setProperty('--card-color', p.color);
-            card.innerHTML = `
-                <div class="card-icon"><i class="fas fa-${p.icon}"></i></div>
-                <p class="card-title-short">${p.title}</p>
-            `;
-            card.onclick = () => openPolicy(i);
+            card.innerHTML = `<div class="card-icon"><i class="fas fa-${p.icon}"></i></div><p class="card-title-short">${p.title}</p>`;
+            card.onclick = () => openPolicy(p);
             grid.appendChild(card);
-            setTimeout(() => card.classList.add('show'), 70 * i);
+            setTimeout(() => card.classList.add('show'), 50 * i);
         });
 
-        function openPolicy(index) {
-            const p = policies[index];
-            const modal = document.getElementById('policyModal');
-            const inner = modal.querySelector('.modal-inner');
-            
-            document.getElementById('mIcon').innerHTML = `<i class="fas fa-${p.icon}"></i>`;
-            document.getElementById('mTag').innerText = p.tag;
-            document.getElementById('mTitle').innerText = p.title;
-            document.getElementById('mDesc').innerText = p.desc;
-            
-            inner.style.setProperty('--m-color', p.color);
-            inner.style.borderColor = p.color.replace(')', ', 0.3)'); // เส้นขอบสีเดียวกับหมวดหมู่แบบจางๆ
-
+        function openPolicy(data) {
+            document.getElementById('mIcon').innerHTML = `<i class="fas fa-${data.icon}"></i>`;
+            document.getElementById('mTag').innerText = data.tag;
+            document.getElementById('mTitle').innerText = data.title;
+            document.getElementById('mDesc').innerText = data.desc;
+            modalInner.style.setProperty('--m-color', data.color);
+            modalInner.style.borderColor = data.color.replace(')', ', 0.4)');
             modal.style.display = 'flex';
-            setTimeout(() => modal.classList.add('active'), 10);
+            requestAnimationFrame(() => modal.classList.add('active'));
         }
 
         function closePolicy() {
-            const modal = document.getElementById('policyModal');
             modal.classList.remove('active');
             setTimeout(() => modal.style.display = 'none', 400);
         }
