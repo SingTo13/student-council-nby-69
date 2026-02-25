@@ -79,7 +79,16 @@
         .status-process { color: var(--warning); border: 1px solid var(--warning); text-shadow: 0 0 10px rgba(251,191,36,0.4); }
         .status-success { color: var(--success); border: 1px solid var(--success); text-shadow: 0 0 10px rgba(34,197,94,0.4); }
 
-        .ref-link { color: var(--accent); text-decoration: none; font-size: 0.9rem; word-break: break-all; }
+        /* การตั้งค่าให้ลิ้งค์แสดงบรรทัดเดียวและตัดส่วนที่ยาว */
+        .ref-link-container {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            margin-top: 5px;
+        }
+        .ref-link { color: var(--accent); text-decoration: none; font-size: 0.85rem; }
         .ref-link:hover { text-decoration: underline; }
 
         .stellar-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.9); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(20px); }
@@ -135,23 +144,20 @@
 
     <script type="module">
         import { db } from './All/ฐานข้อมูล.js';
-        import { 
-            collection, 
-            addDoc, 
-            query, 
-            orderBy, 
-            onSnapshot, 
-            serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
         const btnSubmit = document.getElementById('btnSubmit');
         const detailInput = document.getElementById('detail');
         const refLinkInput = document.getElementById('refLink');
         const complaintList = document.getElementById('complaintList');
         const overlay = document.getElementById('stellarOverlay');
-        const badWords = ["ควย", "เย็ด", "มึง", "กู", "สัส", "เหี้ย", "ดอกทอง", "ชิบหาย", "อีดอก"];
 
-        // Alert System
+        // รายชื่อคำหยาบ (กรองคำที่พิมพ์ทุกอย่าง)
+        const badWords = ["ควย", "เย็ด", "มึง", "กู", "สัส", "เหี้ย", "ดอกทอง", "ชิบหาย", "อีดอก", "หี", "แตด", "เยส"];
+        
+        // รายชื่อ Keyword เว็บ 18+ เบื้องต้น
+        const adultKeywords = ["porn", "sex", "pussy", "naked", "xnxx", "xvideo", "onlyfans", "pornhub", "หลุด"];
+
         window.showAlert = (type, title, desc) => {
             const content = document.getElementById('alertContent');
             const icon = document.getElementById('alertIcon');
@@ -170,20 +176,38 @@
             setTimeout(() => overlay.style.display = 'none', 400);
         };
 
-        // Logic: บันทึกข้อมูล (ทำในไฟล์นี้เอง)
+        // ฟังก์ชันตรวจสอบลิ้งค์และคำหยาบ
+        const validateInput = (text, link) => {
+            // กรองคำหยาบในรายละเอียด
+            const hasBadWord = badWords.some(word => text.includes(word));
+            if (hasBadWord) return { valid: false, msg: 'ขอความกรุณาใช้ถ้อยคำที่สุภาพครับ' };
+
+            // กรองคำหยาบและเว็บ 18+ ในลิ้งค์
+            if (link) {
+                const lowerLink = link.toLowerCase();
+                const isAdult = adultKeywords.some(key => lowerLink.includes(key));
+                const linkHasBadWord = badWords.some(word => lowerLink.includes(word));
+                if (isAdult || linkHasBadWord) return { valid: false, msg: 'ไม่อนุญาตให้แนบลิ้งค์ที่ไม่เหมาะสม หรือลิ้งค์ 18+' };
+            }
+
+            return { valid: true };
+        };
+
         btnSubmit.addEventListener('click', async () => {
             const detail = detailInput.value.trim();
             const refLink = refLinkInput.value.trim();
             
             if(!detail) return;
-            if(badWords.some(word => detail.includes(word))) {
-                showAlert('warning', 'คำไม่สุภาพ!', 'ขอความกรุณาใช้ถ้อยคำที่สุภาพครับ');
+
+            // ตรวจสอบความปลอดภัย
+            const check = validateInput(detail, refLink);
+            if (!check.valid) {
+                showAlert('warning', 'ตรวจพบสิ่งไม่เหมาะสม!', check.msg);
                 return;
             }
 
             btnSubmit.disabled = true;
             try {
-                // เขียนคำสั่งบันทึกข้อมูลโดยตรงในหน้านี้
                 await addDoc(collection(db, "complaints"), {
                     detail: detail,
                     refLink: refLink,
@@ -203,7 +227,7 @@
             }
         });
 
-        // Logic: แสดงผล Real-time (ทำในไฟล์นี้เอง)
+        // Real-time Update
         const q = query(collection(db, "complaints"), orderBy("timestamp", "desc"));
         onSnapshot(q, (snapshot) => {
             complaintList.innerHTML = "";
@@ -220,22 +244,31 @@
                 item.className = 'complaint-item';
                 item.style.animationDelay = `${index * 0.05}s`;
                 
+                // ส่วนของลิ้งค์อ้างอิง (Truncated to 1 line)
                 const refLinkHtml = data.refLink ? `
-                    <div style="margin-top: 10px;">
-                        <small style="opacity: 0.6;"><i class="fas fa-link me-1"></i>อ้างอิง:</small>
-                        <a href="${data.refLink}" target="_blank" class="ref-link">${data.refLink}</a>
+                    <div style="margin-top: 12px; background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px;">
+                        <small style="opacity: 0.5; font-size: 0.7rem; display: block; margin-bottom: 2px;">
+                            <i class="fas fa-link me-1"></i> ลิ้งค์อ้างอิง:
+                        </small>
+                        <div class="ref-link-container">
+                            <a href="${data.refLink}" target="_blank" class="ref-link">${data.refLink}</a>
+                        </div>
                     </div>
                 ` : "";
 
                 item.innerHTML = `
                     <span class="badge-status ${sClass}">${status}</span>
-                    <div style="font-size: 1rem; line-height: 1.6; color: #f1f5f9;">${data.detail}</div>
+                    <div style="font-size: 1rem; line-height: 1.6; color: #f1f5f9; word-break: break-word;">${data.detail}</div>
                     ${refLinkHtml}
-                    ${data.adminReply ? `<div style="background: rgba(56,189,248,0.1); border-left: 4px solid var(--accent); padding: 12px; border-radius: 12px; margin-top: 15px; font-size: 0.9rem;">
-                        <b style="color: var(--accent);"><i class="fas fa-reply me-1"></i>สภานักเรียน:</b> ${data.adminReply}
-                    </div>` : ""}
-                    <div style="font-size: 0.75rem; opacity: 0.4; margin-top: 15px;">
-                        <i class="far fa-calendar-alt me-1"></i> ${data.timestamp ? data.timestamp.toDate().toLocaleString('th-TH') : 'กำลังส่ง...'}
+                    ${data.adminReply ? `
+                        <div style="background: rgba(56,189,248,0.08); border-left: 3px solid var(--accent); padding: 15px; border-radius: 15px; margin-top: 15px; font-size: 0.9rem;">
+                            <b style="color: var(--accent);"><i class="fas fa-reply me-1"></i>สภานักเรียน:</b> 
+                            <span style="color: #cbd5e1;">${data.adminReply}</span>
+                        </div>
+                    ` : ""}
+                    <div style="font-size: 0.7rem; opacity: 0.3; margin-top: 15px; display: flex; align-items: center;">
+                        <i class="far fa-calendar-alt me-1"></i> 
+                        ${data.timestamp ? data.timestamp.toDate().toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' }) : 'กำลังส่ง...'}
                     </div>
                 `;
                 complaintList.appendChild(item);
@@ -243,4 +276,5 @@
         });
     </script>
 </body>
-</html>
+    </html>
+    
