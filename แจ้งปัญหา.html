@@ -134,16 +134,24 @@
     </div>
 
     <script type="module">
-        // นำเข้า DatabaseAPI จากไฟล์แยก
-        import { DatabaseAPI } from './All/ฐานข้อมูล.js';
+        import { db } from './All/ฐานข้อมูล.js';
+        import { 
+            collection, 
+            addDoc, 
+            query, 
+            orderBy, 
+            onSnapshot, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-        const badWords = ["ควย", "เย็ด", "มึง", "กู", "สัส", "เหี้ย", "ดอกทอง", "ชิบหาย", "อีดอก"];
         const btnSubmit = document.getElementById('btnSubmit');
         const detailInput = document.getElementById('detail');
         const refLinkInput = document.getElementById('refLink');
         const complaintList = document.getElementById('complaintList');
         const overlay = document.getElementById('stellarOverlay');
+        const badWords = ["ควย", "เย็ด", "มึง", "กู", "สัส", "เหี้ย", "ดอกทอง", "ชิบหาย", "อีดอก"];
 
+        // Alert System
         window.showAlert = (type, title, desc) => {
             const content = document.getElementById('alertContent');
             const icon = document.getElementById('alertIcon');
@@ -162,48 +170,47 @@
             setTimeout(() => overlay.style.display = 'none', 400);
         };
 
-        // การส่งข้อมูลผ่าน API
+        // Logic: บันทึกข้อมูล (ทำในไฟล์นี้เอง)
         btnSubmit.addEventListener('click', async () => {
             const detail = detailInput.value.trim();
             const refLink = refLinkInput.value.trim();
             
             if(!detail) return;
-            
             if(badWords.some(word => detail.includes(word))) {
-                showAlert('warning', 'คำไม่สุภาพ!', 'ขอความกรุณาใช้ถ้อยคำที่สุภาพในการแจ้งเรื่องครับ');
+                showAlert('warning', 'คำไม่สุภาพ!', 'ขอความกรุณาใช้ถ้อยคำที่สุภาพครับ');
                 return;
             }
-            
+
             btnSubmit.disabled = true;
             try {
-                // เรียกใช้ API จากไฟล์ ฐานข้อมูล.js (ส่ง detail และ refLink)
-                await DatabaseAPI.submitComplaint(detail, refLink);
+                // เขียนคำสั่งบันทึกข้อมูลโดยตรงในหน้านี้
+                await addDoc(collection(db, "complaints"), {
+                    detail: detail,
+                    refLink: refLink,
+                    status: "ยังไม่ได้แก้ไข",
+                    adminReply: "",
+                    timestamp: serverTimestamp()
+                });
                 
                 detailInput.value = "";
                 refLinkInput.value = "";
-                showAlert('success', 'ส่งเรื่องสำเร็จ!', 'ข้อมูลของคุณถูกส่งไปยังสภานักเรียนแล้ว');
-            } catch (e) { 
+                showAlert('success', 'ส่งเรื่องสำเร็จ!', 'ข้อมูลของคุณถูกส่งแล้ว');
+            } catch (e) {
                 console.error(e);
-                showAlert('danger', 'เกิดข้อผิดพลาด', 'ไม่สามารถส่งข้อมูลได้ในขณะนี้');
+                showAlert('danger', 'เกิดข้อผิดพลาด', 'ไม่สามารถส่งข้อมูลได้');
+            } finally {
+                btnSubmit.disabled = false;
             }
-            finally { btnSubmit.disabled = false; }
         });
 
-        // ติดตามข้อมูล Real-time ผ่าน API
-        DatabaseAPI.listenToComplaints((snapshot) => {
+        // Logic: แสดงผล Real-time (ทำในไฟล์นี้เอง)
+        const q = query(collection(db, "complaints"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
             complaintList.innerHTML = "";
-            const now = new Date();
-            const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
-
             snapshot.forEach((doc, index) => {
                 const data = doc.data();
                 const status = data.status || "ยังไม่ได้แก้ไข";
                 
-                if (data.timestamp && (status === "แก้ไขแล้ว" || status === "ไม่สามารถแก้ไขได้")) {
-                    const postDate = data.timestamp.toDate();
-                    if (now - postDate > sevenDaysInMs) return; 
-                }
-
                 let sClass = "status-wait";
                 if(status === "กำลังดำเนินการ") sClass = "status-process";
                 if(status === "แก้ไขแล้ว") sClass = "status-success";
@@ -213,7 +220,6 @@
                 item.className = 'complaint-item';
                 item.style.animationDelay = `${index * 0.05}s`;
                 
-                // ตรวจสอบว่ามีลิงก์อ้างอิงหรือไม่
                 const refLinkHtml = data.refLink ? `
                     <div style="margin-top: 10px;">
                         <small style="opacity: 0.6;"><i class="fas fa-link me-1"></i>อ้างอิง:</small>
@@ -238,4 +244,3 @@
     </script>
 </body>
 </html>
-
