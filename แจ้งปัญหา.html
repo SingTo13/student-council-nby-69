@@ -48,7 +48,6 @@
             animation: floatIn 1s var(--curve) backwards;
         }
 
-        /* --- Input & Button Glass Style --- */
         .custom-textarea {
             background: var(--glass-input);
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -67,7 +66,6 @@
         }
         .btn-submit:hover { transform: scale(1.02) translateY(-3px); background: rgba(56, 189, 248, 0.2); border-color: var(--accent); }
 
-        /* --- Items & Badges --- */
         .complaint-item { 
             background: rgba(255,255,255,0.03); border: 1px solid var(--border); 
             border-radius: 25px; padding: 22px; margin-bottom: 18px; 
@@ -79,7 +77,6 @@
         .status-process { color: var(--warning); border: 1px solid var(--warning); text-shadow: 0 0 10px rgba(251,191,36,0.4); }
         .status-success { color: var(--success); border: 1px solid var(--success); text-shadow: 0 0 10px rgba(34,197,94,0.4); }
 
-        /* --- Overlay Alerts --- */
         .stellar-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.9); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(20px); }
         .alert-box { text-align: center; padding: 40px; border-radius: 40px; max-width: 350px; width: 85%; transform: scale(0.5); opacity: 0; transition: 0.6s var(--curve); border: 1px solid rgba(255,255,255,0.1); }
         .show .alert-box { transform: scale(1); opacity: 1; }
@@ -126,92 +123,90 @@
     </div>
 
     <script type="module">
-    // นำเข้า API จากไฟล์ฐานข้อมูล
-    import { DatabaseAPI } from './ฐานข้อมูล.js';
+        // นำเข้า DatabaseAPI จากไฟล์แยก
+        import { DatabaseAPI } from './All/ฐานข้อมูล.js';
 
-    const badWords = ["ควย", "เย็ด", "มึง", "กู", "สัส", "เหี้ย", "ดอกทอง", "ชิบหาย", "อีดอก"];
-    const btnSubmit = document.getElementById('btnSubmit');
-    const detailInput = document.getElementById('detail');
-    const complaintList = document.getElementById('complaintList');
-    const overlay = document.getElementById('stellarOverlay');
+        const badWords = ["ควย", "เย็ด", "มึง", "กู", "สัส", "เหี้ย", "ดอกทอง", "ชิบหาย", "อีดอก"];
+        const btnSubmit = document.getElementById('btnSubmit');
+        const detailInput = document.getElementById('detail');
+        const complaintList = document.getElementById('complaintList');
+        const overlay = document.getElementById('stellarOverlay');
 
-    // --- Overlay Logic (เหมือนเดิม) ---
-    window.showAlert = (type, title, desc) => {
-        const content = document.getElementById('alertContent');
-        const icon = document.getElementById('alertIcon');
-        content.style.background = type === 'success' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(40, 10, 10, 0.9)';
-        content.style.borderColor = type === 'success' ? 'var(--accent)' : 'var(--danger)';
-        icon.innerHTML = type === 'success' ? '<i class="fas fa-check-circle" style="color: var(--accent);"></i>' : '<i class="fas fa-exclamation-circle" style="color: var(--danger);"></i>';
-        document.getElementById('alertTitle').innerText = title;
-        document.getElementById('alertTitle').style.color = type === 'success' ? 'var(--accent)' : 'var(--danger)';
-        document.getElementById('alertDesc').innerText = desc;
-        overlay.style.display = 'flex';
-        setTimeout(() => overlay.classList.add('show'), 10);
-    };
+        window.showAlert = (type, title, desc) => {
+            const content = document.getElementById('alertContent');
+            const icon = document.getElementById('alertIcon');
+            content.style.background = type === 'success' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(40, 10, 10, 0.9)';
+            content.style.borderColor = type === 'success' ? 'var(--accent)' : 'var(--danger)';
+            icon.innerHTML = type === 'success' ? '<i class="fas fa-check-circle" style="color: var(--accent);"></i>' : '<i class="fas fa-exclamation-circle" style="color: var(--danger);"></i>';
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertTitle').style.color = type === 'success' ? 'var(--accent)' : 'var(--danger)';
+            document.getElementById('alertDesc').innerText = desc;
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.classList.add('show'), 10);
+        };
 
-    window.closeOverlay = () => {
-        overlay.classList.remove('show');
-        setTimeout(() => overlay.style.display = 'none', 400);
-    };
+        window.closeOverlay = () => {
+            overlay.classList.remove('show');
+            setTimeout(() => overlay.style.display = 'none', 400);
+        };
 
-    // --- การใช้งาน API สำหรับส่งข้อมูล ---
-    btnSubmit.addEventListener('click', async () => {
-        const detail = detailInput.value.trim();
-        if(!detail) return;
-        
-        if(badWords.some(word => detail.includes(word))) {
-            showAlert('warning', 'คำไม่สุภาพ!', 'ขอความกรุณาใช้ถ้อยคำที่สุภาพในการแจ้งเรื่องครับ');
-            return;
-        }
-
-        btnSubmit.disabled = true;
-        try {
-            // เรียกใช้ผ่าน API
-            await DatabaseAPI.submitComplaint(detail);
-            detailInput.value = "";
-            showAlert('success', 'ส่งเรื่องสำเร็จ!', 'ข้อมูลของคุณถูกส่งไปยังสภานักเรียนแล้ว');
-        } catch (e) { 
-            console.error("Error submitting:", e);
-            showAlert('error', 'เกิดข้อผิดพลาด', 'ไม่สามารถส่งข้อมูลได้ในขณะนี้');
-        } finally { 
-            btnSubmit.disabled = false; 
-        }
-    });
-
-    // --- การใช้งาน API สำหรับดึงข้อมูลแบบ Real-time ---
-    DatabaseAPI.listenToComplaints((snapshot) => {
-        complaintList.innerHTML = "";
-        const now = new Date();
-        const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
-
-        snapshot.forEach((doc, index) => {
-            const data = doc.data();
-            const status = data.status || "ยังไม่ได้แก้ไข";
-            
-            if (data.timestamp && (status === "แก้ไขแล้ว" || status === "ไม่สามารถแก้ไขได้")) {
-                const postDate = data.timestamp.toDate();
-                if (now - postDate > sevenDaysInMs) return; 
+        // การส่งข้อมูลผ่าน API
+        btnSubmit.addEventListener('click', async () => {
+            const detail = detailInput.value.trim();
+            if(!detail) return;
+            if(badWords.some(word => detail.includes(word))) {
+                showAlert('warning', 'คำไม่สุภาพ!', 'ขอความกรุณาใช้ถ้อยคำที่สุภาพในการแจ้งเรื่องครับ');
+                return;
             }
-
-            let sClass = "status-wait";
-            if(status === "กำลังดำเนินการ") sClass = "status-process";
-            if(status === "แก้ไขแล้ว") sClass = "status-success";
-            if(status === "ไม่สามารถแก้ไขได้") sClass = "status-fail";
-
-            const item = document.createElement('div');
-            item.className = 'complaint-item';
-            item.style.animationDelay = `${index * 0.05}s`;
-            item.innerHTML = `
-                <span class="badge-status ${sClass}">${status}</span>
-                <div style="font-size: 1rem; line-height: 1.6; color: #f1f5f9;">${data.detail}</div>
-                ${data.adminReply ? `<div style="background: rgba(56,189,248,0.1); border-left: 4px solid var(--accent); padding: 12px; border-radius: 12px; margin-top: 15px; font-size: 0.9rem;">
-                    <b style="color: var(--accent);"><i class="fas fa-reply me-1"></i>สภานักเรียน:</b> ${data.adminReply}
-                </div>` : ""}
-                <div style="font-size: 0.75rem; opacity: 0.4; margin-top: 15px;">
-                    <i class="far fa-calendar-alt me-1"></i> ${data.timestamp ? data.timestamp.toDate().toLocaleString('th-TH') : 'กำลังส่ง...'}
-                </div>
-            `;
-            complaintList.appendChild(item);
+            btnSubmit.disabled = true;
+            try {
+                // เรียกใช้ API จากไฟล์ ฐานข้อมูล.js
+                await DatabaseAPI.submitComplaint(detail);
+                detailInput.value = "";
+                showAlert('success', 'ส่งเรื่องสำเร็จ!', 'ข้อมูลของคุณถูกส่งไปยังสภานักเรียนแล้ว');
+            } catch (e) { 
+                console.error(e);
+                showAlert('danger', 'เกิดข้อผิดพลาด', 'ไม่สามารถส่งข้อมูลได้ในขณะนี้');
+            }
+            finally { btnSubmit.disabled = false; }
         });
-    });
-</script>
+
+        // ติดตามข้อมูล Real-time ผ่าน API
+        DatabaseAPI.listenToComplaints((snapshot) => {
+            complaintList.innerHTML = "";
+            const now = new Date();
+            const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+
+            snapshot.forEach((doc, index) => {
+                const data = doc.data();
+                const status = data.status || "ยังไม่ได้แก้ไข";
+                
+                if (data.timestamp && (status === "แก้ไขแล้ว" || status === "ไม่สามารถแก้ไขได้")) {
+                    const postDate = data.timestamp.toDate();
+                    if (now - postDate > sevenDaysInMs) return; 
+                }
+
+                let sClass = "status-wait";
+                if(status === "กำลังดำเนินการ") sClass = "status-process";
+                if(status === "แก้ไขแล้ว") sClass = "status-success";
+                if(status === "ไม่สามารถแก้ไขได้") sClass = "status-fail";
+
+                const item = document.createElement('div');
+                item.className = 'complaint-item';
+                item.style.animationDelay = `${index * 0.05}s`;
+                item.innerHTML = `
+                    <span class="badge-status ${sClass}">${status}</span>
+                    <div style="font-size: 1rem; line-height: 1.6; color: #f1f5f9;">${data.detail}</div>
+                    ${data.adminReply ? `<div style="background: rgba(56,189,248,0.1); border-left: 4px solid var(--accent); padding: 12px; border-radius: 12px; margin-top: 15px; font-size: 0.9rem;">
+                        <b style="color: var(--accent);"><i class="fas fa-reply me-1"></i>สภานักเรียน:</b> ${data.adminReply}
+                    </div>` : ""}
+                    <div style="font-size: 0.75rem; opacity: 0.4; margin-top: 15px;">
+                        <i class="far fa-calendar-alt me-1"></i> ${data.timestamp ? data.timestamp.toDate().toLocaleString('th-TH') : 'กำลังส่ง...'}
+                    </div>
+                `;
+                complaintList.appendChild(item);
+            });
+        });
+    </script>
+</body>
+</html>
