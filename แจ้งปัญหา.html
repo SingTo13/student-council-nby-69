@@ -48,14 +48,16 @@
             animation: floatIn 1s var(--curve) backwards;
         }
 
-        .custom-textarea {
+        .custom-textarea, .custom-input {
             background: var(--glass-input);
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--border);
             border-radius: 20px; color: white; padding: 18px; width: 100%;
-            font-size: 1rem; transition: 0.4s; resize: none;
+            font-size: 1rem; transition: 0.4s; 
         }
-        .custom-textarea:focus { border-color: var(--accent); outline: none; background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .custom-textarea { resize: none; }
+        .custom-input { border-radius: 15px; padding: 12px 18px; }
+        .custom-textarea:focus, .custom-input:focus { border-color: var(--accent); outline: none; background: rgba(255,255,255,0.1); transform: translateY(-2px); }
 
         .btn-submit {
             background: rgba(255, 255, 255, 0.08);
@@ -76,6 +78,9 @@
         .status-fail { color: var(--danger); border: 1px solid var(--danger); text-shadow: 0 0 10px rgba(255,77,77,0.4); }
         .status-process { color: var(--warning); border: 1px solid var(--warning); text-shadow: 0 0 10px rgba(251,191,36,0.4); }
         .status-success { color: var(--success); border: 1px solid var(--success); text-shadow: 0 0 10px rgba(34,197,94,0.4); }
+
+        .ref-link { color: var(--accent); text-decoration: none; font-size: 0.9rem; word-break: break-all; }
+        .ref-link:hover { text-decoration: underline; }
 
         .stellar-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.9); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(20px); }
         .alert-box { text-align: center; padding: 40px; border-radius: 40px; max-width: 350px; width: 85%; transform: scale(0.5); opacity: 0; transition: 0.6s var(--curve); border: 1px solid rgba(255,255,255,0.1); }
@@ -105,10 +110,16 @@
         </div>
 
         <div class="glass-card">
-            <p class="mb-3" style="font-family: 'Kanit'; font-weight: 600; color: var(--accent);">
+            <p class="mb-2" style="font-family: 'Kanit'; font-weight: 600; color: var(--accent);">
                 <i class="fas fa-edit me-2"></i>รายละเอียดความต้องการ
             </p>
             <textarea id="detail" rows="4" class="custom-textarea" placeholder="ระบุปัญหาอย่างละเอียด..."></textarea>
+            
+            <p class="mb-2 mt-4" style="font-family: 'Kanit'; font-weight: 600; color: var(--accent);">
+                <i class="fas fa-link me-2"></i>ลิงก์อ้างอิง (ถ้ามี)
+            </p>
+            <input type="url" id="refLink" class="custom-input" placeholder="https://example.com">
+
             <button id="btnSubmit" class="btn-submit">
                 <i class="fas fa-paper-plane me-2"></i>ส่งข้อมูล
             </button>
@@ -129,6 +140,7 @@
         const badWords = ["ควย", "เย็ด", "มึง", "กู", "สัส", "เหี้ย", "ดอกทอง", "ชิบหาย", "อีดอก"];
         const btnSubmit = document.getElementById('btnSubmit');
         const detailInput = document.getElementById('detail');
+        const refLinkInput = document.getElementById('refLink');
         const complaintList = document.getElementById('complaintList');
         const overlay = document.getElementById('stellarOverlay');
 
@@ -153,16 +165,22 @@
         // การส่งข้อมูลผ่าน API
         btnSubmit.addEventListener('click', async () => {
             const detail = detailInput.value.trim();
+            const refLink = refLinkInput.value.trim();
+            
             if(!detail) return;
+            
             if(badWords.some(word => detail.includes(word))) {
                 showAlert('warning', 'คำไม่สุภาพ!', 'ขอความกรุณาใช้ถ้อยคำที่สุภาพในการแจ้งเรื่องครับ');
                 return;
             }
+            
             btnSubmit.disabled = true;
             try {
-                // เรียกใช้ API จากไฟล์ ฐานข้อมูล.js
-                await DatabaseAPI.submitComplaint(detail);
+                // เรียกใช้ API จากไฟล์ ฐานข้อมูล.js (ส่ง detail และ refLink)
+                await DatabaseAPI.submitComplaint(detail, refLink);
+                
                 detailInput.value = "";
+                refLinkInput.value = "";
                 showAlert('success', 'ส่งเรื่องสำเร็จ!', 'ข้อมูลของคุณถูกส่งไปยังสภานักเรียนแล้ว');
             } catch (e) { 
                 console.error(e);
@@ -194,9 +212,19 @@
                 const item = document.createElement('div');
                 item.className = 'complaint-item';
                 item.style.animationDelay = `${index * 0.05}s`;
+                
+                // ตรวจสอบว่ามีลิงก์อ้างอิงหรือไม่
+                const refLinkHtml = data.refLink ? `
+                    <div style="margin-top: 10px;">
+                        <small style="opacity: 0.6;"><i class="fas fa-link me-1"></i>อ้างอิง:</small>
+                        <a href="${data.refLink}" target="_blank" class="ref-link">${data.refLink}</a>
+                    </div>
+                ` : "";
+
                 item.innerHTML = `
                     <span class="badge-status ${sClass}">${status}</span>
                     <div style="font-size: 1rem; line-height: 1.6; color: #f1f5f9;">${data.detail}</div>
+                    ${refLinkHtml}
                     ${data.adminReply ? `<div style="background: rgba(56,189,248,0.1); border-left: 4px solid var(--accent); padding: 12px; border-radius: 12px; margin-top: 15px; font-size: 0.9rem;">
                         <b style="color: var(--accent);"><i class="fas fa-reply me-1"></i>สภานักเรียน:</b> ${data.adminReply}
                     </div>` : ""}
@@ -210,3 +238,4 @@
     </script>
 </body>
 </html>
+
