@@ -15,7 +15,7 @@
             --accent-glow: rgba(56, 189, 248, 0.4);
             --glass: rgba(15, 23, 42, 0.85);
             --border: rgba(255, 255, 255, 0.15);
-            --edge: 16px; /* ปรับขอบให้เล็กลงสำหรับมือถือ */
+            --edge: 16px;
             --safe-bottom: calc(var(--edge) + env(safe-area-inset-bottom, 0px));
         }
 
@@ -24,10 +24,9 @@
             background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
             font-family: 'Kanit', sans-serif;
             touch-action: none; color: white;
-            -webkit-tap-highlight-color: transparent; /* ลบสีฟ้าเวลาคลิกบน iOS */
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- Info Card (Bottom Center) --- */
         #info-card {
             position: absolute; 
             bottom: calc(var(--safe-bottom) + 85px); 
@@ -47,7 +46,6 @@
         }
         #info-card.active { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-        /* --- UI Controls Layout --- */
         .zoom-controls {
             position: absolute; right: var(--edge); bottom: var(--safe-bottom);
             display: flex; flex-direction: column; gap: 10px; z-index: 101;
@@ -74,13 +72,12 @@
         }
         .nav-toggle.active { background: #ef4444; color: white; transform: rotate(45deg); }
 
-        /* --- Menu Container (Mobile Drawer Style) --- */
         #nav-menu {
             position: absolute; 
             bottom: calc(var(--safe-bottom) + 75px); 
             left: var(--edge);
-            right: var(--edge); /* ให้กว้างเกือบเต็มหน้าจอมือถือ */
-            max-width: 400px; /* แต่ไม่เกิน 400px บน Tablet/PC */
+            right: var(--edge);
+            max-width: 400px;
             margin: 0 auto;
             background: var(--glass);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
@@ -94,7 +91,7 @@
         .location-list {
             max-height: 40vh; overflow-y: auto; display: flex;
             flex-direction: column; gap: 8px; padding-right: 5px;
-            -webkit-overflow-scrolling: touch; /* เลื่อนลื่นๆ บน iOS */
+            -webkit-overflow-scrolling: touch;
         }
         
         .loc-item {
@@ -117,10 +114,6 @@
             font-weight: 600; cursor: pointer; display: flex;
             align-items: center; justify-content: center; gap: 8px;
         }
-
-        /* --- Scrollbar Customization --- */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -145,18 +138,18 @@
 
     <div id="nav-menu">
         <div class="location-list">
-            <div class="loc-item" onclick="flyTo('ระหว่างอาคาร1กับ2')"><i class="fas fa-bed"></i> ม.1/1</div>
-            <div class="loc-item" onclick="flyTo('ข้างสนามฟุตบอล')"><i class="fas fa-bed"></i> ม.1/2</div>
-            <div class="loc-item" onclick="flyTo('ถนนหน้าโรงเรียน')"><i class="fas fa-bed"></i> ม.2/1</div>
-            <div class="loc-item" onclick="flyTo('รอบโรงอาหารและห้องน้ำ')"><i class="fas fa-bed"></i> ม.2/2</div>
-            <div class="loc-item" onclick="flyTo('รอบอาคาร3')"><i class="fas fa-bed"></i> ม.3/1</div>
-            <div class="loc-item" onclick="flyTo('ถนนข้างโรงอาหาร')"><i class="fas fa-bed"></i> ม.3/2</div>
-            <div class="loc-item" onclick="flyTo('ถนนหน้าอาาร1')"><i class="fas fa-bed"></i> ม.4/1</div>
-            <div class="loc-item" onclick="flyTo('บนช็อป')"><i class="fas fa-bed"></i> ม.4/2</div>
-            <div class="loc-item" onclick="flyTo('ข้างหอประชุม')"><i class="fas fa-bed"></i> ม.5/1</div>
-            <div class="loc-item" onclick="flyTo('สนามฟุตบอล')"><i class="fas fa-bed"></i> ม.5/2</div>
-            <div class="loc-item" onclick="flyTo('สนามและหน้าเสาธง')"><i class="fas fa-bed"></i> ม.6/1</div>
-            <div class="loc-item" onclick="flyTo('ถนนหน้าโรงอาหาร')"><i class="fas fa-bed"></i> ม.6/2</div>
+            <div class="loc-item" onclick="flyTo('ระหว่างอาคาร1กับ2')"><i class="fas fa-building"></i> ม.1/1</div>
+            <div class="loc-item" onclick="flyTo('ข้างสนามฟุตบอล')"><i class="fas fa-building"></i> ม.1/2</div>
+            <div class="loc-item" onclick="flyTo('ถนนหน้าโรงเรียน')"><i class="fas fa-building"></i> ม.2/1</div>
+            <div class="loc-item" onclick="flyTo('รอบโรงอาหารและห้องน้ำ')"><i class="fas fa-building"></i> ม.2/2</div>
+            <div class="loc-item" onclick="flyTo('รอบอาคาร3')"><i class="fas fa-building"></i> ม.3/1</div>
+            <div class="loc-item" onclick="flyTo('ถนนข้างโรงอาหาร')"><i class="fas fa-building"></i> ม.3/2</div>
+            <div class="loc-item" onclick="flyTo('ถนนหน้าอาาร1')"><i class="fas fa-building"></i> ม.4/1</div>
+            <div class="loc-item" onclick="flyTo('บนช็อป')"><i class="fas fa-building"></i> ม.4/2</div>
+            <div class="loc-item" onclick="flyTo('ข้างหอประชุม')"><i class="fas fa-building"></i> ม.5/1</div>
+            <div class="loc-item" onclick="flyTo('สนามฟุตบอล')"><i class="fas fa-building"></i> ม.5/2</div>
+            <div class="loc-item" onclick="flyTo('สนามและหน้าเสาธง')"><i class="fas fa-building"></i> ม.6/1</div>
+            <div class="loc-item" onclick="flyTo('ถนนหน้าโรงอาหาร')"><i class="fas fa-building"></i> ม.6/2</div>
         </div>
 
         <div class="reset-container">
@@ -181,6 +174,7 @@
         let originalMaterials = new Map();
         let initialCameraPos = new THREE.Vector3();
         let initialTargetPos = new THREE.Vector3();
+        let pulseTween = null; // เก็บ Animation กะพริบ
 
         init();
 
@@ -198,8 +192,16 @@
 
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
-            controls.dampingFactor = 0.08; // เพิ่มให้หมุนลื่นขึ้นสำหรับมือถือ
-            controls.enableZoom = false;
+            controls.dampingFactor = 0.08;
+            controls.enableZoom = true;
+            
+            // ตั้งค่าการหมุนอัตโนมัติ (ปิดไว้ก่อนจนกว่าจะกดเลือกตำแหน่ง)
+            controls.autoRotate = false;
+            controls.autoRotateSpeed = 0.5; // หมุนช้าๆ
+
+            controls.maxPolarAngle = Math.PI / 2.1;
+            controls.minDistance = 50;
+            controls.maxDistance = 1500;
 
             const loader = new GLTFLoader();
             loader.load('school_map.glb', (gltf) => {
@@ -214,7 +216,7 @@
                 animate();
             });
 
-            setupZoomEvents();
+            setupZoomButtons();
             window.addEventListener('resize', onWindowResize);
         }
 
@@ -225,73 +227,100 @@
 
             resetHighlight(false);
             lastHighlightedObject = targetObj;
+
+            const box = new THREE.Box3().setFromObject(targetObj);
+            const center = new THREE.Vector3();
+            box.getCenter(center);
+            const size = box.getSize(new THREE.Vector3()).length();
+
+            // สร้างวัสดุไฮไลท์และใส่เอฟเฟกต์กะพริบ
             targetObj.traverse((child) => {
                 if (child.isMesh) {
                     originalMaterials.set(child, child.material);
-                    child.material = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x38bdf8, emissiveIntensity: 0.5, transparent: true, opacity: 0.8 });
+                    const highlightMat = new THREE.MeshStandardMaterial({ 
+                        color: 0x38bdf8, 
+                        emissive: 0x38bdf8, 
+                        emissiveIntensity: 0.3, // เริ่มต้นกะพริบ
+                        transparent: true, 
+                        opacity: 0.8 
+                    });
+                    child.material = highlightMat;
+
+                    // ทำ Effect กะพริบช้าๆ (Pulse)
+                    pulseTween = gsap.to(highlightMat, {
+                        emissiveIntensity: 1.2,
+                        duration: 1.5,
+                        repeat: -1,
+                        yoyo: true,
+                        ease: "sine.inOut"
+                    });
                 }
             });
 
             document.getElementById('target-name').innerText = "📍 " + objectName;
             document.getElementById('info-card').classList.add('active');
 
-            const targetPos = new THREE.Vector3();
-            targetObj.getWorldPosition(targetPos);
+            const distance = Math.max(size * 1.1, 80); 
 
-            const box = new THREE.Box3().setFromObject(targetObj);
-            const size = box.getSize(new THREE.Vector3()).length();
-            const distance = Math.max(size * 2.5, 150); 
-
+            // เลื่อนกล้องและเป้าหมาย
             gsap.to(camera.position, {
-                x: targetPos.x + distance, y: targetPos.y + distance, z: targetPos.z + distance,
-                duration: 1.2, ease: "power2.inOut", onUpdate: () => controls.update()
+                x: center.x + distance, y: center.y + distance, z: center.z + distance,
+                duration: 1.8, ease: "power3.inOut", 
+                onUpdate: () => controls.update(),
+                onComplete: () => {
+                    controls.autoRotate = true; // เริ่มหมุนช้าๆ เมื่อซูมเสร็จ
+                }
             });
 
             gsap.to(controls.target, {
-                x: targetPos.x, y: targetPos.y, z: targetPos.z,
-                duration: 1.2, ease: "power2.inOut"
+                x: center.x, y: center.y, z: center.z,
+                duration: 1.8, ease: "power3.inOut"
             });
 
-            toggleMenu(); // ปิดเมนูทันทีที่กดเลือกบนมือถือ
+            if (window.innerWidth < 768) toggleMenu();
         };
 
         window.toggleMenu = () => {
-            const menu = document.getElementById('nav-menu');
-            const btn = document.getElementById('btn-toggle');
-            menu.classList.toggle('active');
-            btn.classList.toggle('active');
+            document.getElementById('nav-menu').classList.toggle('active');
+            document.getElementById('btn-toggle').classList.toggle('active');
         };
 
         window.resetHighlight = (moveCamera = true) => {
+            // หยุดการกะพริบ
+            if (pulseTween) { pulseTween.kill(); pulseTween = null; }
+            
             if (lastHighlightedObject) {
-                lastHighlightedObject.traverse(c => { if(c.isMesh && originalMaterials.has(c)) c.material = originalMaterials.get(c); });
-                originalMaterials.clear(); lastHighlightedObject = null;
+                lastHighlightedObject.traverse(c => { 
+                    if(c.isMesh && originalMaterials.has(c)) c.material = originalMaterials.get(c); 
+                });
+                originalMaterials.clear(); 
+                lastHighlightedObject = null;
                 document.getElementById('info-card').classList.remove('active');
             }
+
+            controls.autoRotate = false; // หยุดการหมุน
+
             if (moveCamera) {
-                gsap.to(controls.target, { x: initialTargetPos.x, y: initialTargetPos.y, z: initialTargetPos.z, duration: 1.0, ease: "expo.out" });
-                gsap.to(camera.position, { x: initialCameraPos.x, y: initialCameraPos.y, z: initialCameraPos.z, duration: 1.0, ease: "expo.out", onUpdate: () => controls.update() });
-                
-                // ถ้าเมนูเปิดอยู่ให้ปิดเมื่อรีเซ็ต
+                gsap.to(controls.target, { x: initialTargetPos.x, y: initialTargetPos.y, z: initialTargetPos.z, duration: 1.2, ease: "expo.out" });
+                gsap.to(camera.position, { x: initialCameraPos.x, y: initialCameraPos.y, z: initialCameraPos.z, duration: 1.2, ease: "expo.out", onUpdate: () => controls.update() });
                 if(document.getElementById('nav-menu').classList.contains('active')) toggleMenu();
             }
         };
 
-        function setupZoomEvents() {
+        function setupZoomButtons() {
             const setup = (id, dir) => {
                 const btn = document.getElementById(id);
-                // รองรับทั้ง Mouse และ Touch
-                btn.onpointerdown = (e) => { btn.setPointerCapture(e.pointerId); zoomDir = dir; };
+                btn.onpointerdown = (e) => { btn.setPointerCapture(e.pointerId); zoomDir = dir; controls.autoRotate = false; };
                 btn.onpointerup = () => zoomDir = 0;
-                btn.onpointerleave = () => zoomDir = 0;
             };
             setup("btn-in", -1); setup("btn-out", 1);
         }
 
-        function updateZoom() {
-            currentZoomSpeed += (zoomDir * 8.0 - currentZoomSpeed) * 0.15;
+        function updateButtonZoom() {
+            currentZoomSpeed += (zoomDir * 12.0 - currentZoomSpeed) * 0.15;
             if (Math.abs(currentZoomSpeed) > 0.01) {
-                const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
+                const dir = new THREE.Vector3(); 
+                camera.getWorldDirection(dir);
                 camera.position.addScaledVector(dir, -currentZoomSpeed);
                 controls.update();
             }
@@ -305,8 +334,8 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            updateZoom();
-            controls.update();
+            updateButtonZoom();
+            controls.update(); 
             renderer.render(scene, camera);
         }
     </script>
