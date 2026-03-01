@@ -26,19 +26,21 @@
             touch-action: none; color: white;
         }
 
-        /* --- Info Card --- */
+        /* --- ย้าย Info Card มาไว้ด้านล่าง --- */
         #info-card {
             position: absolute; 
-            top: var(--edge); left: 50%; 
-            transform: translateX(-50%) translateY(-20px);
+            bottom: calc(var(--safe-bottom) + 80px); /* อยู่เหนือปุ่มควบคุมเล็กน้อย */
+            left: 50%; 
+            transform: translateX(-50%) translateY(20px);
             background: var(--glass); 
             border: 1px solid var(--border);
-            padding: 12px 25px; border-radius: 100px;
+            padding: 10px 20px; border-radius: 100px;
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 20px var(--accent-glow);
-            transition: 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 15px var(--accent-glow);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 100; opacity: 0; pointer-events: none;
-            border-bottom: 2px solid var(--accent);
+            border-top: 2px solid var(--accent); /* เปลี่ยนมาเน้นขอบบนแทน */
+            white-space: nowrap;
         }
         #info-card.active { transform: translateX(-50%) translateY(0); opacity: 1; }
 
@@ -77,22 +79,14 @@
             border: 1px solid var(--border); border-radius: 32px; padding: 24px;
             transform: translateY(40px) scale(0.95); opacity: 0; pointer-events: none;
             transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            z-index: 90; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            z-index: 105; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
         }
         #nav-menu.active { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
 
-        .tabs { display: flex; gap: 8px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 15px; }
-        .tab-btn {
-            flex: 1; padding: 10px; background: transparent; border: none; border-radius: 10px;
-            color: #94a3b8; font-size: 0.85rem; cursor: pointer; transition: 0.3s;
-        }
-        .tab-btn.active { background: var(--accent); color: #000; font-weight: 600; box-shadow: 0 4px 15px var(--accent-glow); }
-
         .location-list {
-            max-height: 40vh; overflow-y: auto; display: none;
+            max-height: 45vh; overflow-y: auto; display: flex;
             flex-direction: column; gap: 8px; padding-right: 10px;
         }
-        .location-list.active { display: flex; }
         
         .loc-item {
             padding: 14px 18px; background: rgba(255,255,255,0.03);
@@ -102,15 +96,40 @@
         .loc-item:hover { background: rgba(56, 189, 248, 0.1); border-color: var(--accent); transform: translateX(5px); }
         .loc-item i { color: var(--accent); font-size: 1.1rem; filter: drop-shadow(0 0 8px var(--accent)); width: 20px; text-align: center; }
 
-        /* Custom Scrollbar */
+        .reset-container {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+        .btn-reset-view {
+            width: 100%;
+            padding: 16px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px dashed #ef4444;
+            border-radius: 20px;
+            color: #ef4444;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+        .btn-reset-view:hover {
+            background: #ef4444;
+            color: white;
+        }
+
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
     </style>
 </head>
 <body>
-    <script src="All/กำลังโหลด.js"></script>
-    <script src="All/ย้อนกลับ.js"></script>
-    <script src="All/พื้นหลัง.js"></script>
+    <div id="info-card">
+        <span id="target-name">N.B.Y. Campus</span>
+    </div>
 
     <div class="nav-controls">
         <button id="btn-toggle" class="action-btn nav-toggle" onclick="toggleMenu()">
@@ -124,32 +143,25 @@
     </div>
 
     <div id="nav-menu">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('buildings')">อาคารเรียน</button>
-            <button class="tab-btn" onclick="switchTab('zones')">โซนพื้นที่</button>
+        <div class="location-list">
+            <div class="loc-item" onclick="flyTo('ระหว่างอาคาร1กับ2')"><i class="fas fa-bed"></i> ม.1/1</div>
+            <div class="loc-item" onclick="flyTo('ข้างสนามฟุตบอล')"><i class="fas fa-bed"></i> ม.1/2</div>
+            <div class="loc-item" onclick="flyTo('ถนนหน้าโรงเรียน')"><i class="fas fa-bed"></i> ม.2/1</div>
+            <div class="loc-item" onclick="flyTo('รอบโรงอาหารและห้องน้ำ')"><i class="fas fa-bed"></i> ม.2/2</div>
+            <div class="loc-item" onclick="flyTo('รอบอาคาร3')"><i class="fas fa-bed"></i> ม.3/1</div>
+            <div class="loc-item" onclick="flyTo('ถนนข้างโรงอาหาร')"><i class="fas fa-bed"></i> ม.3/2</div>
+            <div class="loc-item" onclick="flyTo('ถนนหน้าอาาร1')"><i class="fas fa-bed"></i> ม.4/1</div>
+            <div class="loc-item" onclick="flyTo('บนช็อป')"><i class="fas fa-bed"></i> ม.4/2</div>
+            <div class="loc-item" onclick="flyTo('ข้างหอประชุม')"><i class="fas fa-bed"></i> ม.5/1</div>
+            <div class="loc-item" onclick="flyTo('สนามฟุตบอล')"><i class="fas fa-bed"></i> ม.5/2</div>
+            <div class="loc-item" onclick="flyTo('สนามและหน้าเสาธง')"><i class="fas fa-bed"></i> ม.6/1</div>
+            <div class="loc-item" onclick="flyTo('ถนนหน้าโรงอาหาร')"><i class="fas fa-bed"></i> ม.6/2</div>
         </div>
-        <div id="buildings" class="location-list active">
-            <div class="loc-item" onclick="flyTo('หน้าเสาธง')"><i class="fas fa-flag"></i> หน้าเสาธง</div>
-            <div class="loc-item" onclick="flyTo('หอประชุม')"><i class="fas fa-landmark"></i> หอประชุม</div>
-            <div class="loc-item" onclick="flyTo('ศาลากรีฑา')"><i class="fas fa-medal"></i> ศาลากรีฑา</div>
-            <div class="loc-item" onclick="flyTo('สนามฟุตบอล')"><i class="fas fa-futbol"></i> สนามฟุตบอล</div>
-            <div class="loc-item" onclick="flyTo('อาคาร1')"><i class="fas fa-school"></i> อาคาร 1</div>
-            <div class="loc-item" onclick="flyTo('อาคาร2')"><i class="fas fa-school"></i> อาคาร 2</div>
-            <div class="loc-item" onclick="flyTo('อาคาร3')"><i class="fas fa-school"></i> อาคาร 3</div>
-            <div class="loc-item" onclick="flyTo('โต๊ะปิงปอง')"><i class="fas fa-table-tennis-paddle-ball"></i> โต๊ะปิงปอง</div>
-            <div class="loc-item" onclick="flyTo('โรงจอดรถ1')"><i class="fas fa-motorcycle"></i> โรงจอดรถ 1</div>
-            <div class="loc-item" onclick="flyTo('โรงจอดรถ2')"><i class="fas fa-car"></i> โรงจอดรถ 2</div>
-            <div class="loc-item" onclick="flyTo('โรงอาหาร')"><i class="fas fa-utensils"></i> โรงอาหาร</div>
-            <div class="loc-item" onclick="flyTo('ห้องน้ำหญิง')"><i class="fas fa-venus"></i> ห้องน้ำหญิง</div>
-            <div class="loc-item" onclick="flyTo('ห้องน้ำชาย')"><i class="fas fa-mars"></i> ห้องน้ำชาย</div>
-            <div class="loc-item" onclick="flyTo('ชอป')"><i class="fas fa-tools"></i> ชอปสายอาชีพ</div>
-            <div class="loc-item" onclick="flyTo('ศาลาน้ำดื่ม')"><i class="fas fa-tint"></i> ศาลาน้ำดื่ม</div>
-            <div class="loc-item" onclick="flyTo('หอนอนหญิง')"><i class="fas fa-female"></i> หอนอนหญิง</div>
-            <div class="loc-item" onclick="flyTo('หอนอนชาย')"><i class="fas fa-male"></i> หอนอนชาย</div>
-            <div class="loc-item" onclick="resetHighlight(true)" style="margin-top:10px; color:#ef4444; justify-content:center; border: 1px dashed rgba(239, 68, 68, 0.4);"><i class="fas fa-redo"></i> รีเซ็ตมุมมอง</div>
-        </div>
-        <div id="zones" class="location-list">
-            <div class="loc-item" onclick="flyTo('หอนอนชาย')"><i class="fas fa-bed"></i> เขตหอพัก</div>
+
+        <div class="reset-container">
+            <button class="btn-reset-view" onclick="resetHighlight(true)">
+                <i class="fas fa-compress-arrows-alt"></i> คืนค่ามุมมองทั้งหมด
+            </button>
         </div>
     </div>
 
@@ -206,6 +218,7 @@
         }
 
         window.flyTo = (objectName) => {
+            if (!model) return;
             const targetObj = model.getObjectByName(objectName);
             if (!targetObj) return;
 
@@ -218,27 +231,24 @@
                 }
             });
 
-            document.getElementById('target-name').innerText = objectName;
+            document.getElementById('target-name').innerText = "📍 " + objectName;
             document.getElementById('info-card').classList.add('active');
 
             const targetPos = new THREE.Vector3();
             targetObj.getWorldPosition(targetPos);
 
-            // --- หัวใจสำคัญ: ระบบ Padding 20% ---
             const box = new THREE.Box3().setFromObject(targetObj);
             const size = box.getSize(new THREE.Vector3()).length();
-            // ถอยห่าง 2.5 เท่าของขนาดวัตถุ เพื่อให้เหลือพื้นที่ว่างรอบๆ 20-30%
             const distance = Math.max(size * 2.5, 180); 
 
-            // ปรับมุมมองเยื้องด้านบนเล็กน้อยเพื่อให้ดูสวย (Cinematic Look)
             gsap.to(camera.position, {
                 x: targetPos.x + distance, y: targetPos.y + distance, z: targetPos.z + distance,
-                duration: 2, ease: "expo.out", onUpdate: () => controls.update()
+                duration: 1.5, ease: "power2.out", onUpdate: () => controls.update()
             });
 
             gsap.to(controls.target, {
                 x: targetPos.x, y: targetPos.y, z: targetPos.z,
-                duration: 2, ease: "expo.out"
+                duration: 1.5, ease: "power2.out"
             });
 
             if(window.innerWidth < 768) toggleMenu();
@@ -256,16 +266,11 @@
                 document.getElementById('info-card').classList.remove('active');
             }
             if (moveCamera) {
-                gsap.to(controls.target, { x: initialTargetPos.x, y: initialTargetPos.y, z: initialTargetPos.z, duration: 1.5, ease: "expo.out" });
-                gsap.to(camera.position, { x: initialCameraPos.x, y: initialCameraPos.y, z: initialCameraPos.z, duration: 1.5, ease: "expo.out", onUpdate: () => controls.update() });
+                gsap.to(controls.target, { x: initialTargetPos.x, y: initialTargetPos.y, z: initialTargetPos.z, duration: 1.2, ease: "expo.out" });
+                gsap.to(camera.position, { x: initialCameraPos.x, y: initialCameraPos.y, z: initialCameraPos.z, duration: 1.2, ease: "expo.out", onUpdate: () => controls.update() });
+                
+                if(window.innerWidth < 768 && document.getElementById('nav-menu').classList.contains('active')) toggleMenu();
             }
-        };
-
-        window.switchTab = (tabId) => {
-            document.querySelectorAll('.location-list').forEach(l => l.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
         };
 
         function setupZoomEvents() {
@@ -301,5 +306,3 @@
     </script>
 </body>
 </html>
-
-
