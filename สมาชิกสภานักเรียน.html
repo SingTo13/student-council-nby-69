@@ -14,188 +14,161 @@
     <style>
         :root {
             --accent: #38bdf8;
-            --border: rgba(255, 255, 255, 0.1);
-            --glass: rgba(15, 23, 42, 0.85);
-            --edge-gap: 25px; 
+            --border: rgba(255,255,255,0.1);
+            --glass: rgba(15,23,42,0.85);
+            --edge-gap: 25px;
             --safe-top: calc(var(--edge-gap) + env(safe-area-inset-top, 0px));
+            --safe-bottom: calc(var(--edge-gap) + env(safe-area-inset-bottom, 0px));
         }
+        body,html { margin:0; padding:0; width:100%; height:100%; color:white; overflow:hidden; font-family:'Sarabun',sans-serif; touch-action:manipulation; }
 
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            color: white; overflow: hidden;
-            font-family: 'Sarabun', sans-serif; touch-action: manipulation;
-            /* พื้นหลังจะมาจาก พื้นหลัง.js */
-        }
-
-        /* UI Controls */
+        /* ── top-right: search ── */
         .ui-controls-top {
-            position: fixed; top: var(--safe-top); right: var(--edge-gap);
-            display: flex; flex-direction: column; align-items: flex-end; gap: 15px; z-index: 9999;
+            position:fixed; top:var(--safe-top); right:var(--edge-gap);
+            display:flex; flex-direction:column; align-items:flex-end; gap:12px; z-index:9999;
         }
-
         .search-container {
-            height: 48px; background: var(--glass); border: 1px solid var(--border);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border-radius: 24px;
-            display: flex; align-items: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            max-width: 48px; overflow: hidden; pointer-events: auto;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            height:48px; background:var(--glass); border:1px solid var(--border);
+            backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px);
+            border-radius:24px; display:flex; align-items:center;
+            transition:max-width .4s cubic-bezier(.175,.885,.32,1.275), border-color .3s, box-shadow .3s;
+            max-width:48px; overflow:hidden; pointer-events:auto;
+            box-shadow:0 8px 32px rgba(0,0,0,.5); will-change:max-width;
         }
-        .search-container.active { max-width: 250px; padding-right: 15px; border-color: var(--accent); }
-        .search-container i { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: var(--accent); cursor: pointer; flex-shrink: 0; }
-        .search-container input { background: transparent; border: none; color: white; outline: none; width: 100%; font-size: 16px; opacity: 0; padding-left: 5px; }
-        .search-container.active input { opacity: 1; }
+        .search-container.active { max-width:260px; padding-right:15px; border-color:var(--accent); box-shadow:0 8px 32px rgba(0,0,0,.45),0 0 20px rgba(56,189,248,.12); }
+        .search-container i { width:48px; height:48px; display:flex; align-items:center; justify-content:center; color:var(--accent); cursor:pointer; flex-shrink:0; transition:transform .3s; }
+        .search-container i:hover { transform:scale(1.1); }
+        .search-container input { background:transparent; border:none; color:white; outline:none; width:100%; font-size:16px; opacity:0; padding-left:5px; transition:opacity .3s .1s; }
+        .search-container.active input { opacity:1; }
 
-        .btn-center {
-            width: 48px; height: 48px; border-radius: 16px;
-            background: var(--glass); border: 1px solid var(--border);
-            color: white; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; transition: 0.3s; cursor: pointer;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        /* ── bottom-right: control panel ── */
+        .ui-controls-bottom {
+            position:fixed; right:var(--edge-gap); bottom:var(--safe-bottom);
+            display:flex; flex-direction:column; align-items:flex-end; gap:8px; z-index:9999;
+            animation:panelIn .6s .3s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes panelIn {
+            from { opacity:0; transform:translateY(22px); }
+            to   { opacity:1; transform:translateY(0); }
         }
 
-        /* Modal Details */
-        .stellar-modal {
-            position: fixed; inset: 0; 
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 50%, rgba(15, 23, 42, 0.95) 100%);
-            display: none; align-items: center; justify-content: center;
-            z-index: 10001; opacity: 0; transition: 0.4s ease-out; 
-            padding: 10vw; /* 20% margin from edges (10% each side) */
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        /* ปุ่มซ่อน/แสดง */
+        .toggle-btn {
+            width:48px; height:48px; border-radius:50%;
+            background:var(--glass); border:1px solid var(--border);
+            backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+            color:var(--accent); display:flex; align-items:center; justify-content:center;
+            font-size:18px; cursor:pointer;
+            box-shadow:0 8px 32px rgba(0,0,0,.5);
+            transition:all .3s ease; user-select:none; -webkit-user-select:none;
         }
-        .stellar-modal.active { display: flex; opacity: 1; }
-        
-        .modal-inner {
-            width: 100%; max-width: 500px;
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0.06) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 35px; padding: 35px 30px; text-align: center;
-            transform: scale(0.8) translateY(40px); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 
-                0 0 0 1px rgba(255, 255, 255, 0.05),
-                0 25px 50px rgba(0, 0, 0, 0.4),
-                0 0 80px rgba(56, 189, 248, 0.05),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            position: relative;
-            overflow: hidden;
+        .toggle-btn:hover { transform:scale(1.1); border-color:var(--accent); box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 20px rgba(56,189,248,.2); }
+        .toggle-btn:active { transform:scale(.92); }
+
+        .ctrl-panel {
+            background:var(--glass); border:1px solid var(--border);
+            backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+            border-radius:22px; display:flex; flex-direction:column;
+            align-items:center; gap:3px; padding:8px;
+            box-shadow:0 8px 32px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07);
+            transform-origin: bottom right;
+            transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
         }
-        .modal-inner::before {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(45deg, transparent 30%, rgba(56, 189, 248, 0.02) 50%, transparent 70%);
+        .ctrl-panel.hidden {
+            transform: scale(0.5) translateY(20px);
+            opacity: 0;
             pointer-events: none;
         }
-        .stellar-modal.active .modal-inner { transform: scale(1) translateY(0); }
+        .ctrl-divider { width:28px; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent); margin:3px 0; }
+        .ctrl-btn {
+            width:42px; height:42px; border-radius:13px; background:transparent;
+            border:1px solid transparent; color:rgba(255,255,255,.65);
+            display:flex; align-items:center; justify-content:center;
+            font-size:15px; cursor:pointer;
+            transition:background .2s,border-color .2s,color .2s,transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;
+            position:relative; overflow:visible; user-select:none; -webkit-user-select:none;
+        }
+        .ctrl-btn:hover { background:rgba(56,189,248,.1); border-color:rgba(56,189,248,.25); color:var(--accent); transform:scale(1.14); box-shadow:0 4px 16px rgba(56,189,248,.15); }
+        .ctrl-btn:active { transform:scale(.92); }
+        /* tooltip — ด้านซ้ายเหมือนเดิม */
+        .ctrl-btn[data-tip]::after {
+            content:attr(data-tip); position:absolute; right:calc(100% + 12px); top:50%;
+            transform:translateY(-50%) translateX(8px);
+            background:rgba(2,6,23,.95); color:white; font-size:12px; font-family:'Kanit';
+            white-space:nowrap; padding:5px 11px; border-radius:9px;
+            border:1px solid rgba(255,255,255,.1); opacity:0; pointer-events:none;
+            transition:opacity .2s,transform .2s; z-index:99999;
+        }
+        .ctrl-btn[data-tip]:hover::after { opacity:1; transform:translateY(-50%) translateX(0); }
 
-        .compact-portrait { 
-            width: 100%; max-width: 350px; aspect-ratio: 3/4;
-            object-fit: cover; border-radius: 25px; 
-            border: 2px solid rgba(255, 255, 255, 0.2); margin-bottom: 20px; 
-            box-shadow: 
-                0 25px 50px rgba(0,0,0,0.5),
-                0 0 20px rgba(56, 189, 248, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            transition: transform 0.3s ease;
+        /* ── Modal ── */
+        .stellar-modal {
+            position:fixed; inset:0;
+            background:linear-gradient(135deg,rgba(15,23,42,.95) 0%,rgba(30,41,59,.9) 50%,rgba(15,23,42,.95) 100%);
+            display:none; align-items:center; justify-content:center;
+            z-index:10001; opacity:0; transition:opacity .35s ease;
+            padding:10vw; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
         }
-        .compact-portrait:hover { transform: scale(1.01); }
+        .stellar-modal.active { opacity:1; }
+        .modal-inner {
+            width:100%; max-width:500px;
+            background:linear-gradient(145deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.02) 50%,rgba(255,255,255,.06) 100%);
+            border:1px solid rgba(255,255,255,.15); border-radius:35px; padding:35px 30px; text-align:center;
+            transform:scale(.8) translateY(40px); opacity:0;
+            transition:transform .5s cubic-bezier(.175,.885,.32,1.275), opacity .35s ease;
+            box-shadow:0 0 0 1px rgba(255,255,255,.05),0 25px 50px rgba(0,0,0,.4),0 0 80px rgba(56,189,248,.05),inset 0 1px 0 rgba(255,255,255,.1);
+            backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px);
+            position:relative; overflow:hidden; will-change:transform,opacity;
+        }
+        .modal-inner::before {
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(45deg,transparent 30%,rgba(56,189,248,.02) 50%,transparent 70%);
+            pointer-events:none;
+        }
+        .stellar-modal.active .modal-inner { transform:scale(1) translateY(0); opacity:1; }
+        .compact-portrait { width:100%; max-width:350px; aspect-ratio:3/4; object-fit:cover; border-radius:25px; border:2px solid rgba(255,255,255,.2); margin-bottom:20px; box-shadow:0 25px 50px rgba(0,0,0,.5),0 0 20px rgba(56,189,248,.1); transition:transform .3s ease; }
+        .compact-portrait:hover { transform:scale(1.01); }
+        #mName { font-family:'Kanit'; font-size:2rem; font-weight:700; margin:5px 0 8px; background:linear-gradient(135deg,#fff 0%,#e2e8f0 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+        #mTitle { color:rgba(56,189,248,.7); font-size:1.3rem; margin-bottom:20px; font-weight:400; font-family:'Kanit'; }
+        .quote-box { background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.01) 100%); padding:15px 20px; border-radius:20px; font-style:italic; font-size:1.1rem; color:rgba(203,213,225,.85); border:1px solid rgba(255,255,255,.1); border-left:3px solid rgba(56,189,248,.3); line-height:1.5; text-align:left; position:relative; }
+        .quote-box::before { content:'\201C'; position:absolute; top:-8px; left:12px; font-size:2.5rem; color:rgba(56,189,248,.2); font-family:serif; }
+        .close-btn { width:100%; padding:14px; border-radius:18px; border:none; background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(255,255,255,.75)); color:#030712; font-weight:700; margin-top:25px; cursor:pointer; transition:all .3s ease; font-family:'Kanit'; font-size:1rem; box-shadow:0 8px 20px rgba(0,0,0,.2); }
+        .close-btn:hover { transform:translateY(-1px); box-shadow:0 12px 25px rgba(0,0,0,.25),0 0 20px rgba(56,189,248,.1); }
 
-        #mName { 
-            font-family: 'Kanit'; font-size: 2rem; font-weight: 700; 
-            margin: 5px 0 8px 0; color: white; 
-            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
-            -webkit-background-clip: text; background-clip: text;
-            color: transparent; -webkit-text-fill-color: transparent;
-        }
-        #mTitle { 
-            color: rgba(56, 189, 248, 0.7); font-size: 1.3rem; 
-            margin-bottom: 20px; font-weight: 400; font-family: 'Kanit';
-            text-shadow: 0 1px 3px rgba(56, 189, 248, 0.2);
-        }
-        
-        .quote-box {
-            background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
-            padding: 15px 20px; border-radius: 20px; 
-            font-style: italic; font-size: 1.1rem; color: rgba(203, 213, 225, 0.85); 
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-left: 3px solid rgba(56, 189, 248, 0.3); 
-            line-height: 1.5; text-align: left;
-            position: relative;
-            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        }
-        .quote-box::before {
-            content: '"';
-            position: absolute; top: -8px; left: 12px;
-            font-size: 2.5rem; color: rgba(56, 189, 248, 0.2);
-            font-family: serif;
-        }
+        @media(max-width:768px){ .stellar-modal{padding:8vw} .modal-inner{padding:25px 20px;max-width:400px} .compact-portrait{max-width:300px} #mName{font-size:1.8rem} #mTitle{font-size:1.2rem} .ui-controls-bottom{right:14px;bottom:14px} }
+        @media(max-width:480px){ .stellar-modal{padding:5vw} .modal-inner{padding:20px 15px;border-radius:25px;max-width:320px} .compact-portrait{max-width:250px} #mName{font-size:1.6rem} .ui-controls-bottom{right:10px;bottom:10px} .ctrl-btn{width:38px;height:38px;font-size:13px} }
 
-        .close-btn { 
-            width: 100%; padding: 14px; border-radius: 18px; border: none; 
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.75) 100%);
-            color: #030712; font-weight: 700; 
-            margin-top: 25px; cursor: pointer; transition: all 0.3s ease; 
-            font-family: 'Kanit'; font-size: 1rem;
-            box-shadow: 
-                0 8px 20px rgba(0,0,0,0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-        }
-        .close-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 
-                0 12px 25px rgba(0,0,0,0.25),
-                0 0 20px rgba(56, 189, 248, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
-        }
-        .close-btn:active { transform: translateY(0); }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .stellar-modal { padding: 8vw; }
-            .modal-inner { padding: 25px 20px; max-width: 400px; }
-            .compact-portrait { max-width: 300px; }
-            #mName { font-size: 1.8rem; }
-            #mTitle { font-size: 1.2rem; }
-            .quote-box { font-size: 1rem; padding: 12px 16px; }
-        }
-        @media (max-width: 480px) {
-            .stellar-modal { padding: 5vw; }
-            .modal-inner { padding: 20px 15px; border-radius: 25px; max-width: 320px; }
-            .compact-portrait { max-width: 250px; }
-            #mName { font-size: 1.6rem; }
-            #mTitle { font-size: 1.1rem; }
-            .quote-box { font-size: 0.95rem; padding: 10px 14px; }
-        }
-        @media (max-width: 360px) {
-            .stellar-modal { padding: 4vw; }
-            .modal-inner { padding: 18px 12px; max-width: 280px; }
-            .compact-portrait { max-width: 220px; }
-            #mName { font-size: 1.4rem; }
-            #mTitle { font-size: 1rem; }
-            .quote-box { font-size: 0.9rem; padding: 8px 12px; }
-        }
-
-        #tree { width: 100%; height: 100%; background: transparent !important; position: relative; z-index: 1; }
-        .boc-search { display: none !important; }
+        #tree { width:100%; height:100%; background:transparent !important; position:relative; z-index:1; }
+        .boc-search { display:none !important; }
     </style>
 </head>
 <body>
     <script src="All/กำลังโหลด.js"></script>
     <script src="All/ย้อนกลับ.js"></script>
     <script src="All/พื้นหลัง.js"></script>
-    
+
     <div class="ui-controls-top">
         <div class="search-container" id="searchBox">
             <i class="fas fa-search" id="searchIcon"></i>
             <input type="text" id="searchInp" placeholder="ค้นหาชื่อ..." autocomplete="off">
         </div>
-        <div class="btn-center" id="btnFit">
-            <i class="fas fa-compress-arrows-alt"></i>
+    </div>
+
+    <!-- ── bottom-right controls ── -->
+    <div class="ui-controls-bottom">
+        <div class="ctrl-panel" id="ctrlPanel">
+            <button class="ctrl-btn" id="btnZoomIn"      data-tip="ขยาย"><i class="fas fa-plus"></i></button>
+            <button class="ctrl-btn" id="btnZoomOut"     data-tip="ย่อ"><i class="fas fa-minus"></i></button>
+            <div class="ctrl-divider"></div>
+            <button class="ctrl-btn" id="btnFit"         data-tip="แสดงทั้งหมด"><i class="fas fa-compress-arrows-alt"></i></button>
+            <button class="ctrl-btn" id="btnRoot"        data-tip="ไปที่ประธาน"><i class="fas fa-crown"></i></button>
+            <div class="ctrl-divider"></div>
+            <button class="ctrl-btn" id="btnExpandAll"   data-tip="ขยายทั้งหมด"><i class="fas fa-sitemap"></i></button>
+            <button class="ctrl-btn" id="btnCollapseAll" data-tip="ย่อทั้งหมด"><i class="fas fa-layer-group"></i></button>
         </div>
+        <button class="toggle-btn" id="btnToggle" title="ซ่อน/แสดงเครื่องมือ">
+            <i class="fas fa-sliders-h" id="toggleIcon"></i>
+        </button>
     </div>
 
     <div id="tree"></div>
@@ -205,123 +178,198 @@
             <img id="mImg" class="compact-portrait" src="">
             <h2 id="mName"></h2>
             <p id="mTitle"></p>
-            <div class="quote-box">
-                <p id="mQuote" class="mb-0"></p>
-            </div>
+            <div class="quote-box"><p id="mQuote" class="mb-0"></p></div>
             <button class="close-btn" id="closeBtn">ปิดหน้าต่าง</button>
         </div>
     </div>
 
     <script>
-        var chart;
+    // ─── Template ───────────────────────────────────────────
+    OrgChart.templates.stellar = Object.assign({}, OrgChart.templates.ana);
+    OrgChart.templates.stellar.size = [180, 285];
+    OrgChart.templates.stellar.node = '<rect x="0" y="0" height="285" width="180" fill="#1e293b" rx="20" ry="20" stroke="#334155" stroke-width="1"></rect>';
+    OrgChart.templates.stellar.img_0 = '<clipPath id="pClip{randId}"><rect x="10" y="10" width="160" height="210" rx="14" ry="14"></rect></clipPath><image preserveAspectRatio="xMidYMid slice" clip-path="url(#pClip{randId})" xlink:href="{val}" x="10" y="10" width="160" height="210" style="cursor:pointer;"></image>';
+    OrgChart.templates.stellar.field_1 = '<text style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;" fill="#38bdf8" x="90" y="235" text-anchor="middle">{val}</text>';
+    OrgChart.templates.stellar.field_0 = '<text style="font-size:15px;font-weight:600;" fill="#ffffff" x="90" y="255" text-anchor="middle">{val}</text>';
+    OrgChart.templates.stellar.field_2 = '<text style="font-size:12px;font-weight:400;" fill="#94a3b8" x="90" y="272" text-anchor="middle">{val}</text>';
+    OrgChart.templates.stellar.plus  = '<line x1="10" y1="15" x2="20" y2="15" stroke="#38bdf8" stroke-width="2"></line><line x1="15" y1="10" x2="15" y2="20" stroke="#38bdf8" stroke-width="2"></line>';
+    OrgChart.templates.stellar.minus = '<line x1="10" y1="15" x2="20" y2="15" stroke="#64748b" stroke-width="2"></line>';
 
-        OrgChart.templates.stellar = Object.assign({}, OrgChart.templates.ana);
-        OrgChart.templates.stellar.size = [180, 285]; 
-        OrgChart.templates.stellar.node = '<rect x="0" y="0" height="285" width="180" fill="#1e293b" rx="20" ry="20" stroke="#334155" stroke-width="1"></rect>';
-        OrgChart.templates.stellar.img_0 = '<clipPath id="pClip"><rect x="10" y="10" width="160" height="210" rx="14" ry="14"></rect></clipPath><image preserveAspectRatio="xMidYMid slice" clip-path="url(#pClip)" xlink:href="{val}" x="10" y="10" width="160" height="210"></image>';
-        OrgChart.templates.stellar.field_1 = '<text style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;" fill="#38bdf8" x="90" y="235" text-anchor="middle">{val}</text>';
-        OrgChart.templates.stellar.field_0 = '<text style="font-size: 15px; font-weight: 600;" fill="#ffffff" x="90" y="255" text-anchor="middle">{val}</text>';
-        OrgChart.templates.stellar.field_2 = '<text style="font-size: 12px; font-weight: 400;" fill="#94a3b8" x="90" y="272" text-anchor="middle">{val}</text>';
-        OrgChart.templates.stellar.plus = '<line x1="10" y1="15" x2="20" y2="15" stroke="#38bdf8" stroke-width="2"></line><line x1="15" y1="10" x2="15" y2="20" stroke="#38bdf8" stroke-width="2"></line>';
-        OrgChart.templates.stellar.minus = '<line x1="10" y1="15" x2="20" y2="15" stroke="#64748b" stroke-width="2"></line>';
+    // ─── Data ────────────────────────────────────────────────
+    var nodes = [
+        { id:0,  name:"นางสาวณิชาพัฒน์ ยะโส",        title:"ประธานสภานักเรียน",        img:"สมาชิกสภานักเรียน/F.webp",    quote:"ผู้นำคือผู้ที่สร้างแรงบันดาลใจให้ผู้อื่นก้าวไปข้างหน้า" },
+        { id:1,  pid:0, name:"นายสิงหราช กาแก้ว",     title:"เลขานุการ",                img:"สมาชิกสภานักเรียน/ST.webp",   quote:"ระเบียบวินัยสร้างคน คนสร้างงานที่สมบูรณ์" },
+        { id:2,  pid:0, name:"นายสุขสิทธิ์ ภูมิอินทร์", title:"รองประธานสภานักเรียน",  img:"สมาชิกสภานักเรียน/B1.webp",   quote:"การทำงานเป็นทีมคือหัวใจของสภานักเรียน" },
+        { id:3,  pid:0, name:"นางสาวปานชนก ถอสูงเนิน",  title:"เหรัญญิก",               img:"สมาชิกสภานักเรียน/Pan.webp",  quote:"ความโปร่งใสคือพื้นฐานของความไว้วางใจ" },
 
-        const rawNodes = [
-            { id:1, name:"นางสาวณิชาพัฒน์ ยะโส", title:"ประธานนักเรียน", img:"สมาชิกสภานักเรียน/F.webp", quote:"ผู้นำคือผู้ที่สร้างแรงบันดาลใจให้ผู้อื่นก้าวไปข้างหน้า" },
-            { id:2, pid:1, name:"นายนรวิทญ์ ทองแก้ว", title:"เลขานุการ", img:"สมาชิกสภานักเรียน/B2.webp", quote:"ระเบียบวินัยสร้างคน คนสร้างงานที่สมบูรณ์" },
-            { id:3, pid:1, name:"นายสุขสิทธิ์ ภูมิอินทร์", title:"รองประธาน", img:"สมาชิกสภานักเรียน/B1.webp", quote:"การทำงานเป็นทีมคือหัวใจของสภานักเรียน" },
-            { id:4, pid:1, name:"นายสิงหราช กาแก้ว", title:"เหรัญญิก", img:"สมาชิกสภานักเรียน/ST.webp", quote:"ความโปร่งใสคือพื้นฐานของความไว้วางใจ" },
-            { id:5, pid:3, name:"นางสาวพิมพ์นารา อยู่ดี", title:"สมาชิก", img:"สมาชิกสภานักเรียน/PZ.webp", quote:"พลังเยาวชนคือพลังแห่งการเปลี่ยนแปลง" },
-            { id:6, pid:3, name:"นางสาวศุกลภัทร วันคง", title:"สมาชิก", img:"สมาชิกสภานักเรียน/D.webp", quote:"มุ่งมั่น ตั้งใจ เพื่อส่วนรวม" },
-            { id:7, pid:3, name:"นางสาวปานชนก ถอสูงเนิน", title:"สมาชิก", img:"สมาชิกสภานักเรียน/Pan.webp", quote:"ก้าวไปข้างหน้าด้วยความมั่นใจ" },
-            { id:8, pid:3, name:"นางสาวพรพรรณ จันดา", title:"สมาชิก", img:"สมาชิกสภานักเรียน/Pat.webp", quote:"รอยยิ้มและมิตรภาพสร้างความสำเร็จ" },
-            { id:9, pid:3, name:"นายธนภัทร แซ่ลี", title:"สมาชิก", img:"สมาชิกสภานักเรียน/P.webp", quote:"ทำทุกวันให้เป็นวันแห่งการเรียนรู้" },
-            { id:10, pid:3, name:"นางสาวจรรยวรรณ์ ไชยวัชรนนท์", title:"สมาชิก", img:"สมาชิกสภานักเรียน/Mew.webp", quote:"ความเพียรพยายามไม่เคยทรยศใคร" },
-            { id:11, pid:3, name:"นางสาวภาวินี แซ่หว้า", title:"สมาชิก", img:"สมาชิกสภานักเรียน/Bua.webp", quote:"ความสำเร็จอยู่ที่การลงมือทำ" },
-            { id:12, pid:3, name:"นางสาววัชรินทร์ คุ้มแสง", title:"สมาชิก", img:"สมาชิกสภานักเรียน/NR.webp", quote:"วินัยเป็นรากฐานของชีวิต" }
-        ];
+        { id:4,  pid:2, name:"นางสาวศุภิสรา แซ่หลอ",       title:"หัวหน้าฝ่ายประชาสัมพันธ์",   img:"รอรูป", quote:"พลังเยาวชนคือพลังแห่งการเปลี่ยนแปลง" },
+        { id:11, pid:4, name:"นางสาวณัฏฐพรรณ วัฒนะ",        title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
+        { id:12, pid:4, name:"นางสาวจารวี หลวงภักดี",        title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
 
-        const processedNodes = rawNodes.map(node => {
-            const parts = node.name.split(' ');
-            return {
-                ...node,
-                firstName: parts[0],
-                lastName: parts[1] || ""
-            };
-        });
+        { id:5,  pid:2, name:"นางสาวพรพรรณ จันดา",           title:"หัวหน้าฝ่ายวิชาการ",         img:"สมาชิกสภานักเรียน/Pat.webp", quote:"มุ่งมั่น ตั้งใจ เพื่อส่วนรวม" },
+        { id:13, pid:5, name:"นายอภินันท์ อินทร์โฉม",        title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
 
-        chart = new OrgChart(document.getElementById("tree"), {
-            template: "stellar",
-            mouseScrool: OrgChart.action.zoom,
-            nodeMouseClick: OrgChart.action.expandCollapse,
-            collapse: { level: 2, allChildren: true },
-            nodeBinding: { 
-                field_0: "firstName",
-                field_1: "title", 
-                field_2: "lastName",
-                img_0: "img" 
-            },
-            nodes: processedNodes
-        });
+        { id:6,  pid:2, name:"นางสาวพิมพ์นารา อยู่ดี",       title:"หัวหน้าฝ่ายกิจกรรม",         img:"สมาชิกสภานักเรียน/PZ.webp", quote:"ก้าวไปข้างหน้าด้วยความมั่นใจ" },
+        { id:14, pid:6, name:"นายธนากร เชิดเชื้อ",           title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
+        { id:15, pid:6, name:"นายณัฐพร พุ่มประเสริฐ",        title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
 
-        // Search Logic
-        const sBox = document.getElementById('searchBox');
-        const sInp = document.getElementById('searchInp');
-        const sIcon = document.getElementById('searchIcon');
+        { id:7,  pid:2, name:"นายนรวิทญ์ ทองแก้ว",           title:"หัวหน้าฝ่ายสารวัตรนักเรียน", img:"สมาชิกสภานักเรียน/B2.webp", quote:"รอยยิ้มและมิตรภาพสร้างความสำเร็จ" },
+        { id:16, pid:7, name:"นายวัชรพล สุขแจ่ม",            title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
+        { id:17, pid:7, name:"นายเมธาสิทธิ์ เขียวสวัสดิ์",   title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
+        { id:18, pid:16, name:"นายพีรพัฒน์ แซ่หว้า",          title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
+        { id:19, pid:17, name:"นางสาววิชาดา พุฒนันท์",         title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
 
-        function resetSearch() {
-            if(sBox.classList.contains('active')) {
-                sBox.classList.remove('active');
-                sInp.value = ""; sInp.blur();
-            }
+        { id:8,  pid:2, name:"นางสาวจรรยวรรณ์ ไชยวัชรนนท์",  title:"หัวหน้าฝ่ายชุมชนสัมพันธ์",  img:"สมาชิกสภานักเรียน/Mew.webp", quote:"ทำทุกวันให้เป็นวันแห่งการเรียนรู้" },
+        { id:20, pid:8, name:"นายวรเมธ บัวเหมือน",           title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
+
+        { id:9,  pid:2, name:"นางสาวศุกลภัทร วันคง",          title:"หัวหน้าฝ่ายปฏิคม",           img:"สมาชิกสภานักเรียน/D.webp", quote:"ความเพียรพยายามไม่เคยทรยศใคร" },
+        { id:21, pid:9, name:"นางสาวนันทิชา น้อยเมือง",       title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
+        { id:22, pid:9, name:"นางสาววัชรินทร์ คุ้มแสง",       title:"สมาชิก", img:"สมาชิกสภานักเรียน/NR.webp", quote:"วินัยเป็นรากฐานของชีวิต" },
+
+        { id:10, pid:2, name:"นายธนภัทร แซ่ลี",              title:"หัวหน้าฝ่ายสถานที่",          img:"สมาชิกสภานักเรียน/P.webp", quote:"ความสำเร็จอยู่ที่การลงมือทำ" },
+        { id:23, pid:10, name:"นายธนกร แหวนสุข",             title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
+        { id:24, pid:10, name:"นายกิตตินันท์ หว้ากิจเจริญ",  title:"สมาชิก", img:"รอรูป", quote:"วินัยเป็นรากฐานของชีวิต" },
+        { id:25, pid:23, name:"นางสาวภาวินี แซ่หว้า",        title:"สมาชิก", img:"สมาชิกสภานักเรียน/Bua.webp", quote:"วินัยเป็นรากฐานของชีวิต" }
+    ];
+
+    nodes.forEach(function(n) {
+        var p = (n.name || '').split(' ');
+        n.firstName = p[0] || '';
+        n.lastName  = p[1] || '';
+    });
+
+    // ─── Init Chart ──────────────────────────────────────────
+    var chart = new OrgChart(document.getElementById('tree'), {
+        template: 'stellar',
+        mouseScrool: OrgChart.action.zoom,
+        nodeMouseClick: OrgChart.action.expandCollapse,
+        collapse: { level: 2, allChildren: true },
+        enableSearch: true,
+        anim: { func: OrgChart.anim.outPow, duration: 380 },
+        nodeBinding: { field_0:'firstName', field_1:'title', field_2:'lastName', img_0:'img' },
+        nodes: nodes
+    });
+
+    // ─── Modal ───────────────────────────────────────────────
+    function openModal(node) {
+        document.getElementById('mImg').src          = node.img;
+        document.getElementById('mName').innerText   = node.name;
+        document.getElementById('mTitle').innerText  = node.title;
+        document.getElementById('mQuote').innerText  = '\u201C' + node.quote + '\u201D';
+        var m = document.getElementById('pModal');
+        m.style.display = 'flex';
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){ m.classList.add('active'); }); });
+    }
+    function closeModal() {
+        var m = document.getElementById('pModal');
+        m.classList.remove('active');
+        setTimeout(function(){ m.style.display='none'; }, 380);
+    }
+
+    chart.on('click', function(sender, args) {
+        resetSearch();
+        if (args.event.target.tagName === 'image') {
+            openModal(chart.get(args.node.id));
+            return false;
         }
+    });
+    document.getElementById('closeBtn').addEventListener('click', closeModal);
+    document.getElementById('pModal').addEventListener('click', closeModal);
 
-        sIcon.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (sBox.classList.contains('active')) resetSearch();
-            else { sBox.classList.add('active'); setTimeout(() => sInp.focus(), 300); }
-        });
+    // ─── Toggle Panel ─────────────────────────────────────────
+    var panelVisible = true;
+    var btnToggle    = document.getElementById('btnToggle');
+    var toggleIcon   = document.getElementById('toggleIcon');
+    var ctrlPanel    = document.getElementById('ctrlPanel');
 
-        document.addEventListener('click', () => resetSearch());
-        sInp.addEventListener('click', (e) => e.stopPropagation());
-        document.getElementById('btnFit').addEventListener('click', (e) => {
-            e.stopPropagation(); resetSearch(); chart.fit();
-        });
+    btnToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        panelVisible = !panelVisible;
+        if (panelVisible) {
+            ctrlPanel.classList.remove('hidden');
+            toggleIcon.className = 'fas fa-sliders-h';
+            btnToggle.title = 'ซ่อนเครื่องมือ';
+        } else {
+            ctrlPanel.classList.add('hidden');
+            toggleIcon.className = 'fas fa-sliders-h';
+            btnToggle.title = 'แสดงเครื่องมือ';
+        }
+    });
 
-        // Modal Logic
-        chart.on('click', function(sender, args){
-            resetSearch();
-            if (args.event.target.tagName == 'image') {
-                const node = chart.get(args.node.id);
-                document.getElementById("mImg").src = node.img;
-                document.getElementById("mName").innerText = node.name;
-                document.getElementById("mTitle").innerText = node.title;
-                document.getElementById("mQuote").innerText = `"${node.quote}"`;
-                
-                const modal = document.getElementById("pModal");
-                modal.style.display = "flex";
-                setTimeout(() => modal.classList.add("active"), 50);
-                return false; 
-            }
-            // ถ้าคลิกที่ rect (ขอบนอก) จะให้ทำการ expand/collapse ตามปกติ
-            if (args.event.target.tagName == 'rect') {
-                return true; // ให้ทำการ expand/collapse ตามปกติ
-            }
-        });
+    // ─── Search ──────────────────────────────────────────────
+    var sBox  = document.getElementById('searchBox');
+    var sInp  = document.getElementById('searchInp');
+    var sIcon = document.getElementById('searchIcon');
 
-        sInp.addEventListener('input', (e) => {
-            const result = chart.search(e.target.value);
-            if(result.length > 0) chart.center(result[0].id);
-        });
+    function resetSearch() {
+        if (sBox.classList.contains('active')) {
+            sBox.classList.remove('active'); sInp.value=''; sInp.blur();
+        }
+    }
+    sIcon.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (sBox.classList.contains('active')) resetSearch();
+        else { sBox.classList.add('active'); setTimeout(function(){ sInp.focus(); }, 320); }
+    });
+    document.addEventListener('click', resetSearch);
+    sInp.addEventListener('click', function(e){ e.stopPropagation(); });
+    sInp.addEventListener('input', function(e) {
+        var v = e.target.value.trim(); if (!v) return;
+        var found = null;
+        nodes.forEach(function(n){ if (!found && n.name && n.name.indexOf(v) !== -1) found = n; });
+        if (found) chart.center(found.id);
+    });
 
-        const closeModal = () => {
-            const modal = document.getElementById("pModal");
-            modal.classList.remove("active");
-            setTimeout(() => modal.style.display = "none", 300);
-        };
-        document.getElementById("closeBtn").addEventListener('click', closeModal);
-        document.getElementById("pModal").addEventListener('click', closeModal);
+    // ─── Smooth hold-to-zoom via RAF ─────────────────────────
+    function makeHoldZoom(id, dir) {
+        var btn = document.getElementById(id);
+        var raf = null, going = false, vel = 0;
 
-        window.onload = () => { chart.fit(); };
+        function tick() {
+            if (!going) return;
+            vel = Math.min(vel + 0.0012, 0.022);
+            var s = chart.getScale() || 1;
+            var ns = dir > 0 ? Math.min(s + vel, 3.5) : Math.max(s - vel, 0.15);
+            chart.setScale(ns);
+            raf = requestAnimationFrame(tick);
+        }
+        function start(e) {
+            e.preventDefault(); e.stopPropagation();
+            if (going) return;
+            going = true; vel = 0.012;
+            var s = chart.getScale() || 1;
+            chart.setScale(dir > 0 ? Math.min(s + 0.05, 3.5) : Math.max(s - 0.05, 0.15));
+            raf = requestAnimationFrame(tick);
+        }
+        function stop() { going = false; cancelAnimationFrame(raf); }
+
+        btn.addEventListener('mousedown',   start);
+        btn.addEventListener('touchstart',  start, {passive:false});
+        document.addEventListener('mouseup',     stop);
+        document.addEventListener('touchend',    stop);
+        document.addEventListener('touchcancel', stop);
+    }
+    makeHoldZoom('btnZoomIn',  1);
+    makeHoldZoom('btnZoomOut', -1);
+
+    // ─── Other controls ───────────────────────────────────────
+    document.getElementById('btnFit').addEventListener('click', function(e) {
+        e.stopPropagation(); resetSearch(); chart.fit();
+    });
+    document.getElementById('btnRoot').addEventListener('click', function(e) {
+        e.stopPropagation(); resetSearch(); chart.center(0);
+    });
+    document.getElementById('btnExpandAll').addEventListener('click', function(e) {
+        e.stopPropagation();
+        chart.expand(0, nodes.map(function(n){ return n.id; }), function(){ chart.fit(); });
+    });
+    document.getElementById('btnCollapseAll').addEventListener('click', function(e) {
+        e.stopPropagation();
+        var nonRoot = nodes.filter(function(n){ return n.id !== 0; }).map(function(n){ return n.id; });
+        chart.collapse(0, nonRoot, function(){ chart.fit(); });
+    });
+
+    window.onload = function(){ chart.fit(); };
     </script>
 </body>
 </html>
