@@ -6,503 +6,611 @@
     <title>N.B.Y. Stellar 3D Campus</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
     <style>
         :root {
             --accent:        #38bdf8;
             --accent-glow:   rgba(56,189,248,0.35);
-            --glass:         rgba(10,18,36,0.85);
+            --glass:         rgba(10,18,36,0.88);
             --glass-light:   rgba(255,255,255,0.04);
             --border:        rgba(255,255,255,0.12);
             --border-accent: rgba(56,189,248,0.35);
             --text-dim:      rgba(148,163,184,0.85);
-            --edge:          18px;
+            --edge:          16px;
             --safe-bottom:   calc(var(--edge) + env(safe-area-inset-bottom,0px));
-            --safe-top:      calc(var(--edge) + env(safe-area-inset-top,0px));
+            --safe-top:      env(safe-area-inset-top,0px);
         }
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-
         body {
             overflow:hidden;
             background:radial-gradient(ellipse at 50% 0%, #0f1f3d 0%, #020817 60%);
             font-family:'Kanit',sans-serif;
-            touch-action:none; color:white;
+            touch-action:none; color:#fff;
             -webkit-tap-highlight-color:transparent;
         }
 
+        /* STARS */
+        #stars { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+        .star { position:absolute; border-radius:50%; background:#fff; animation:twinkle var(--d,3s) ease-in-out infinite var(--dl,0s); }
+        @keyframes twinkle { 0%,100%{opacity:.1} 50%{opacity:.6} }
 
+        /* KEYFRAMES */
+        @keyframes slideInLeft  { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes slideInRight { from{opacity:0;transform:translateX(16px)}  to{opacity:1;transform:translateX(0)} }
+        @keyframes slideInUp    { from{opacity:0;transform:translateX(-50%) translateY(18px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+        @keyframes itemReveal   { from{opacity:0;transform:translateY(6px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+        @keyframes shimmer      { 0%{background-position:-200% center} 100%{background-position:200% center} }
+        @keyframes locGlow      { 0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,.18)} 50%{box-shadow:0 0 0 5px rgba(56,189,248,.07)} }
+        @keyframes fabPulse     { 0%,100%{box-shadow:0 8px 24px rgba(56,189,248,.42)} 50%{box-shadow:0 8px 34px rgba(56,189,248,.70),0 0 0 8px rgba(56,189,248,.07)} }
+        @keyframes bounce       { from{transform:translateY(0)} to{transform:translateY(-6px)} }
+        @keyframes rippleOut    { 0%{width:0;height:0;opacity:.9} 100%{width:110px;height:110px;opacity:0} }
+        @keyframes icPulse      { 0%,100%{box-shadow:0 0 0 0 var(--accent-glow)} 50%{box-shadow:0 0 0 7px rgba(56,189,248,0)} }
 
-        /* ── INFO CARD ── */
+        /* TOP BAR */
+        #top-bar { position:fixed; top:0; left:0; right:0; z-index:400; padding-top:var(--safe-top); pointer-events:none; }
+        #top-bar-inner {
+            height:52px; display:flex; align-items:center; justify-content:space-between;
+            padding:0 var(--edge);
+            background:linear-gradient(180deg,rgba(2,8,23,.90) 0%,rgba(2,8,23,0) 100%);
+        }
+        #top-bar-inner > * { pointer-events:auto; }
+        .tbtn {
+            width:40px; height:40px; border-radius:13px;
+            background:var(--glass); border:1px solid var(--border);
+            color:rgba(255,255,255,.78); font-size:14px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+            box-shadow:0 4px 16px rgba(0,0,0,.45);
+            transition:.22s; user-select:none; -webkit-user-select:none;
+        }
+        .tbtn:hover  { border-color:var(--border-accent); color:var(--accent); }
+        .tbtn:active { transform:scale(.87); }
+        #btn-back    { animation:slideInLeft  .6s .1s cubic-bezier(.34,1.56,.64,1) both; }
+        #btn-compass { animation:slideInRight .6s .1s cubic-bezier(.34,1.56,.64,1) both; }
+
+        /* TOAST */
+        #toast {
+            position:fixed; top:calc(var(--safe-top) + 58px); left:50%;
+            transform:translateX(-50%) translateY(-10px) scale(.94);
+            background:var(--glass); border:1px solid var(--border-accent);
+            border-radius:999px; padding:8px 18px;
+            font-size:.8rem; color:var(--accent);
+            backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+            box-shadow:0 4px 24px rgba(0,0,0,.5);
+            z-index:600; opacity:0; pointer-events:none;
+            transition:.28s cubic-bezier(.34,1.56,.64,1); white-space:nowrap;
+        }
+        #toast.show { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+
+        /* HINT */
+        #dtap-hint {
+            position:fixed; top:50%; left:50%;
+            transform:translate(-50%,-50%) scale(.75);
+            background:rgba(8,18,42,.92); border:1px solid var(--border-accent);
+            border-radius:18px; padding:18px 26px;
+            backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+            z-index:500; opacity:0; pointer-events:none;
+            transition:.38s cubic-bezier(.34,1.56,.64,1);
+            display:flex; flex-direction:column; align-items:center; gap:8px;
+            text-align:center; box-shadow:0 10px 36px rgba(0,0,0,.55);
+        }
+        #dtap-hint.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+        #dtap-hint .dh-icon { font-size:1.8rem; animation:bounce .9s ease-in-out infinite alternate; }
+        #dtap-hint .dh-main { font-weight:700; font-size:.9rem; }
+        #dtap-hint .dh-sub  { font-size:.7rem; color:var(--text-dim); }
+
+        /* RIPPLE */
+        .ripple {
+            position:fixed; border-radius:50%; width:0; height:0;
+            border:2.5px solid var(--accent); pointer-events:none; z-index:350;
+            transform:translate(-50%,-50%);
+            animation:rippleOut .65s cubic-bezier(.25,.46,.45,.94) forwards;
+        }
+
+        /* INFO CARD */
         #info-card {
             position:fixed;
-            bottom:calc(var(--safe-bottom) + 90px);
-            left:50%; transform:translateX(-50%) translateY(18px);
+            bottom:calc(var(--safe-bottom) + 68px);
+            left:50%; transform:translateX(-50%) translateY(20px) scale(.92);
             background:var(--glass);
             border:1px solid var(--border-accent); border-top:2px solid var(--accent);
-            padding:10px 20px 10px 14px; border-radius:999px;
-            backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-            box-shadow:0 8px 32px rgba(0,0,0,.5), 0 0 20px var(--accent-glow);
-            z-index:200; opacity:0; pointer-events:none;
-            transition:.4s cubic-bezier(.175,.885,.32,1.275);
+            padding:10px 14px 10px 11px; border-radius:999px;
+            backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+            box-shadow:0 8px 32px rgba(0,0,0,.55), 0 0 24px var(--accent-glow);
+            z-index:300; opacity:0; pointer-events:none;
+            transition:.42s cubic-bezier(.175,.885,.32,1.275);
             display:flex; align-items:center; gap:10px;
-            max-width:calc(100vw - 130px);
+            max-width:calc(100vw - 120px);
         }
-        #info-card.active { transform:translateX(-50%) translateY(0); opacity:1; pointer-events:auto; }
+        #info-card.active { transform:translateX(-50%) translateY(0) scale(1); opacity:1; pointer-events:auto; }
         .ic-dot {
             width:26px; height:26px; border-radius:50%; flex-shrink:0;
             background:rgba(56,189,248,.12); border:1px solid var(--border-accent);
             display:flex; align-items:center; justify-content:center;
-            font-size:10px; color:var(--accent);
+            font-size:11px; color:var(--accent);
+            animation:icPulse 1.3s ease-in-out infinite;
         }
-        #ic-name { font-size:.9rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #ic-name { font-size:.88rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #info-card.active #ic-name {
+            background:linear-gradient(90deg,#fff 30%,var(--accent) 50%,#fff 70%);
+            background-size:200% auto;
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            background-clip:text; animation:shimmer 2.5s linear infinite;
+        }
         #ic-close {
-            width:20px; height:20px; border-radius:50%; background:rgba(255,255,255,.08);
-            border:none; color:rgba(255,255,255,.4); font-size:8px; cursor:pointer;
+            width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,.07);
+            border:1px solid var(--border); color:rgba(255,255,255,.4); font-size:9px; cursor:pointer;
             display:flex; align-items:center; justify-content:center;
             flex-shrink:0; transition:.2s; margin-left:2px;
         }
-        #ic-close:hover { background:rgba(239,68,68,.2); color:#ef4444; }
+        #ic-close:hover { background:rgba(239,68,68,.22); color:#ef4444; border-color:rgba(239,68,68,.3); }
 
-        /* ── ZOOM BUTTONS (right) ── */
-        .ctrl-right {
-            position:fixed; right:var(--edge); bottom:var(--safe-bottom);
-            display:flex; flex-direction:column; gap:9px; z-index:200;
-            animation:fadeR .7s .4s cubic-bezier(.34,1.56,.64,1) both;
+        /* BOTTOM BAR */
+        #bottom-bar {
+            position:fixed; bottom:var(--safe-bottom); left:50%;
+            transform:translateX(-50%);
+            display:flex; align-items:center; gap:7px; z-index:300;
+            animation:slideInUp .65s .3s cubic-bezier(.34,1.56,.64,1) both;
         }
-        @keyframes fadeR { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
-
         .cbtn {
-            width:48px; height:48px; background:var(--glass); border:1px solid var(--border);
-            border-radius:15px; color:rgba(255,255,255,.65); font-size:16px; cursor:pointer;
+            width:46px; height:46px;
+            background:var(--glass); border:1px solid var(--border);
+            border-radius:14px; color:rgba(255,255,255,.68); font-size:16px; cursor:pointer;
             display:flex; align-items:center; justify-content:center;
-            backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-            box-shadow:0 4px 16px rgba(0,0,0,.35);
+            backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+            box-shadow:0 4px 16px rgba(0,0,0,.38);
             transition:.2s; user-select:none; -webkit-user-select:none;
         }
-        .cbtn:hover { border-color:var(--border-accent); color:var(--accent); transform:scale(1.07); }
-        .cbtn:active { transform:scale(.88); }
-
-        /* ── FAB + PANEL (left) ── */
-        .ctrl-left {
-            position:fixed; left:var(--edge); bottom:var(--safe-bottom); z-index:200;
-            animation:fadeL .7s .4s cubic-bezier(.34,1.56,.64,1) both;
+        .cbtn:hover  { border-color:var(--border-accent); color:var(--accent); transform:translateY(-2px); }
+        .cbtn:active { transform:scale(.86); }
+        .lbtn {
+            height:46px; padding:0 14px;
+            background:var(--glass); border:1px solid var(--border);
+            border-radius:14px; color:rgba(255,255,255,.68); cursor:pointer;
+            display:flex; align-items:center; gap:6px;
+            backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+            box-shadow:0 4px 16px rgba(0,0,0,.38);
+            transition:.2s; user-select:none; -webkit-user-select:none;
+            font-family:'Kanit',sans-serif; font-size:.8rem; font-weight:600;
         }
-        @keyframes fadeL { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
-
+        .lbtn:hover  { border-color:var(--border-accent); color:var(--accent); transform:translateY(-2px); }
+        .lbtn:active { transform:scale(.88); }
+        .lbtn.active-btn { border-color:var(--border-accent); color:var(--accent); }
+        .lbtn i { font-size:14px; }
         #btn-toggle {
-            width:58px; height:58px; border-radius:18px;
+            width:52px; height:52px; border-radius:17px;
             background:linear-gradient(135deg,var(--accent),#0ea5e9);
-            border:none; color:#001828; font-size:22px; cursor:pointer;
+            border:none; color:#001828; font-size:21px; cursor:pointer;
             display:flex; align-items:center; justify-content:center;
-            box-shadow:0 8px 24px rgba(56,189,248,.45);
-            transition:.3s; user-select:none; -webkit-user-select:none;
+            transition:.3s cubic-bezier(.34,1.56,.64,1);
+            user-select:none; -webkit-user-select:none; flex-shrink:0;
         }
-        #btn-toggle:hover { transform:scale(1.05); box-shadow:0 10px 30px rgba(56,189,248,.55); }
-        #btn-toggle:active { transform:scale(.9); }
+        #btn-toggle:not(.open) { animation:fabPulse 2.4s ease-in-out infinite; }
+        #btn-toggle:hover  { transform:scale(1.07) translateY(-2px); }
+        #btn-toggle:active { transform:scale(.88); }
         #btn-toggle.open {
             background:linear-gradient(135deg,#ef4444,#f97316);
-            box-shadow:0 8px 24px rgba(239,68,68,.4);
+            box-shadow:0 8px 24px rgba(239,68,68,.42);
             transform:rotate(135deg);
         }
+        .zoom-pair { display:flex; gap:5px; }
 
-        /* ── NAV PANEL ── */
+        /* NAV PANEL */
         #nav-panel {
             position:fixed;
-            bottom:calc(var(--safe-bottom) + 76px);
-            left:var(--edge);
-            width:min(340px, calc(100vw - var(--edge)*2));
+            bottom:calc(var(--safe-bottom) + 58px);
+            left:50%; transform:translateX(-50%) translateY(28px) scale(.95);
+            width:min(360px, calc(100vw - 24px));
             background:var(--glass);
-            backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+            backdrop-filter:blur(32px); -webkit-backdrop-filter:blur(32px);
             border:1px solid var(--border); border-radius:24px; overflow:hidden;
-            transform:translateY(22px) scale(.96); opacity:0; pointer-events:none;
+            opacity:0; pointer-events:none;
             transition:all .38s cubic-bezier(.23,1,.32,1);
-            z-index:300;
-            box-shadow:0 24px 48px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+            z-index:400;
+            box-shadow:0 24px 56px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.06);
         }
-        #nav-panel.active { transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
+        #nav-panel.active { transform:translateX(-50%) translateY(0) scale(1); opacity:1; pointer-events:auto; }
+        #nav-panel.active .loc-item { animation:itemReveal .28s cubic-bezier(.34,1.56,.64,1) both; }
 
-        .np-head {
-            padding:15px 16px 11px; border-bottom:1px solid var(--border);
-            display:flex; align-items:center; gap:10px;
-        }
+        .np-head { padding:12px 13px 10px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:9px; }
         .np-head-icon {
             width:30px; height:30px; border-radius:9px;
             background:rgba(56,189,248,.1); border:1px solid var(--border-accent);
             display:flex; align-items:center; justify-content:center;
-            font-size:12px; color:var(--accent);
+            font-size:13px; color:var(--accent); flex-shrink:0;
         }
-        .np-head h3 { font-size:.88rem; font-weight:600; }
-        .np-head p  { font-size:.68rem; color:var(--text-dim); margin-top:1px; }
+        .np-head-text { flex:1; overflow:hidden; }
+        .np-head h3   { font-size:.86rem; font-weight:700; }
+        .np-head p    { font-size:.65rem; color:var(--text-dim); margin-top:1px; }
+        .np-close {
+            width:28px; height:28px; border-radius:9px;
+            background:rgba(255,255,255,.05); border:1px solid var(--border);
+            color:var(--text-dim); font-size:10px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; transition:.2s; flex-shrink:0;
+        }
+        .np-close:hover { background:rgba(239,68,68,.15); color:#f87171; border-color:rgba(239,68,68,.28); }
+
+        .np-search { padding:8px 10px 0; }
+        .np-search-wrap { position:relative; }
+        .np-search-wrap i { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--text-dim); pointer-events:none; }
+        .np-search input {
+            width:100%; padding:8px 12px 8px 30px;
+            background:rgba(255,255,255,.05); border:1px solid var(--border);
+            border-radius:10px; color:#fff; font-family:'Kanit',sans-serif; font-size:.82rem;
+            outline:none; transition:.22s;
+        }
+        .np-search input::placeholder { color:var(--text-dim); }
+        .np-search input:focus { border-color:var(--border-accent); background:rgba(56,189,248,.05); }
 
         .np-list {
-            max-height:40vh; overflow-y:auto;
-            padding:8px 10px 10px;
-            display:flex; flex-direction:column; gap:4px;
-            scrollbar-width:thin; scrollbar-color:rgba(56,189,248,.2) transparent;
+            max-height:38vh; overflow-y:auto;
+            padding:7px 9px 9px; display:flex; flex-direction:column; gap:4px;
+            scrollbar-width:thin; scrollbar-color:rgba(56,189,248,.18) transparent;
         }
         .np-list::-webkit-scrollbar { width:3px; }
-        .np-list::-webkit-scrollbar-thumb { background:rgba(56,189,248,.25); border-radius:4px; }
+        .np-list::-webkit-scrollbar-thumb { background:rgba(56,189,248,.22); border-radius:4px; }
 
         .loc-item {
-            padding:11px 13px; border-radius:13px;
+            padding:10px 12px; border-radius:13px;
             background:var(--glass-light); border:1px solid transparent;
-            cursor:pointer; display:flex; align-items:center; gap:11px;
-            font-size:.88rem; transition:.16s;
+            cursor:pointer; display:flex; align-items:center; gap:10px; transition:.18s;
         }
         .loc-item:hover  { background:rgba(56,189,248,.07); border-color:rgba(56,189,248,.18); }
-        .loc-item:active { background:rgba(56,189,248,.14); transform:scale(.98); }
-        .loc-item.active-loc { background:rgba(56,189,248,.11); border-color:var(--border-accent); }
-        .li-num {
-            width:26px; height:26px; border-radius:8px; flex-shrink:0;
-            background:rgba(56,189,248,.08); border:1px solid rgba(56,189,248,.14);
-            display:flex; align-items:center; justify-content:center;
-            font-size:.7rem; font-weight:700; color:var(--accent);
-            font-family:'Space Mono',monospace;
-        }
-        .li-text { flex:1; }
-        .li-label { font-weight:600; font-size:.88rem; }
-        .li-sub   { font-size:.68rem; color:var(--text-dim); margin-top:1px; }
-        .li-arr   { font-size:9px; color:var(--text-dim); transition:.16s; }
+        .loc-item:active { background:rgba(56,189,248,.14); transform:scale(.975); }
+        .loc-item.active-loc { background:rgba(56,189,248,.11); border-color:var(--border-accent); animation:locGlow 1.8s ease-in-out infinite; }
+        .loc-item.hidden { display:none; }
+        .li-emoji { width:30px; height:30px; border-radius:9px; flex-shrink:0; background:rgba(56,189,248,.08); border:1px solid rgba(56,189,248,.13); display:flex; align-items:center; justify-content:center; font-size:1rem; }
+        .li-text  { flex:1; overflow:hidden; }
+        .li-label { font-weight:700; font-size:.86rem; }
+        .li-sub   { font-size:.67rem; color:var(--text-dim); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .li-arr   { font-size:9px; color:var(--text-dim); transition:.18s; flex-shrink:0; }
         .loc-item:hover .li-arr { color:var(--accent); transform:translateX(3px); }
 
-        .np-foot {
-            padding:9px 12px 13px; border-top:1px solid var(--border);
-        }
+        .np-foot { padding:7px 10px 11px; border-top:1px solid var(--border); }
         .btn-reset {
-            width:100%; padding:11px;
-            background:rgba(239,68,68,.07); border:1px dashed rgba(239,68,68,.38);
+            width:100%; padding:10px;
+            background:rgba(239,68,68,.07); border:1px dashed rgba(239,68,68,.35);
             border-radius:12px; color:#f87171;
-            font-family:'Kanit'; font-weight:600; font-size:.83rem; cursor:pointer;
-            display:flex; align-items:center; justify-content:center; gap:8px;
-            transition:.18s;
+            font-family:'Kanit'; font-weight:600; font-size:.82rem; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; gap:8px; transition:.2s;
         }
-        .btn-reset:hover { background:rgba(239,68,68,.13); }
+        .btn-reset:hover  { background:rgba(239,68,68,.13); }
+        .btn-reset:active { transform:scale(.97); }
 
-
-
-        /* ── SCANLINES ── */
         body::after {
             content:''; position:fixed; inset:0; pointer-events:none; z-index:1;
-            background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.025) 2px,rgba(0,0,0,.025) 4px);
+            background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.018) 2px,rgba(0,0,0,.018) 4px);
         }
     </style>
 </head>
 <body>
 
-    <!-- ① Loader ก่อนทุกอย่าง -->
-    <script src="All/กำลังโหลด.js"></script>
-    <script src="All/ย้อนกลับ.js"></script>
-    <script src="All/พื้นหลัง.js"></script>
+<div id="stars"></div>
 
-    <!-- ② บอก StellarLoader ให้รอ GLB — ณ จุดนี้ script synchronous โหลดเสร็จแล้ว -->
-    <script>if (window.StellarLoader) window.StellarLoader.hold();</script>
+<!-- ① Loader scripts — เหมือนต้นฉบับทุกประการ -->
+<script src="All/กำลังโหลด.js"></script>
+<script src="All/ย้อนกลับ.js"></script>
+<script src="All/พื้นหลัง.js"></script>
+<!-- ② hold synchronous ก่อน module จะรัน — เหมือนต้นฉบับ -->
+<script>if (window.StellarLoader) window.StellarLoader.hold();</script>
 
-    <!-- UI -->
-    <div id="info-card">
-        <div class="ic-dot"><i class="fas fa-location-dot"></i></div>
-        <span id="ic-name">—</span>
-        <button id="ic-close"><i class="fas fa-times"></i></button>
+<!-- TOP BAR -->
+<div id="top-bar">
+    <div id="top-bar-inner">
+        <button class="tbtn" id="btn-back"    title="ย้อนกลับ"><i class="fas fa-chevron-left"></i></button>
+        <button class="tbtn" id="btn-compass" title="คืนมุมมอง"><i class="fas fa-compass"></i></button>
     </div>
+</div>
 
-    <div class="ctrl-right">
-        <button class="cbtn" id="btn-in" ><i class="fas fa-plus"></i></button>
-        <button class="cbtn" id="btn-out"><i class="fas fa-minus"></i></button>
+<div id="toast"></div>
+
+<div id="dtap-hint">
+    <div class="dh-icon">👆</div>
+    <div class="dh-main">แตะที่อาคาร 2 ครั้ง</div>
+    <div class="dh-sub">เพื่อดูข้อมูลตำแหน่งในโรงเรียน</div>
+</div>
+
+<div id="info-card">
+    <div class="ic-dot"><i class="fas fa-location-dot"></i></div>
+    <span id="ic-name">—</span>
+    <button id="ic-close"><i class="fas fa-times"></i></button>
+</div>
+
+<div id="bottom-bar">
+    <div class="zoom-pair">
+        <button class="cbtn" id="btn-in"  title="ซูมเข้า"><i class="fas fa-plus"></i></button>
+        <button class="cbtn" id="btn-out" title="ซูมออก"><i class="fas fa-minus"></i></button>
     </div>
+    <button id="btn-toggle" title="แผนที่โรงเรียน"><i class="fas fa-map-marked-alt"></i></button>
+    <button class="lbtn" id="btn-rotate"><i class="fas fa-sync-alt"></i><span>หมุน</span></button>
+</div>
 
-    <div class="ctrl-left">
-        <button id="btn-toggle"><i class="fas fa-map-marked-alt"></i></button>
-    </div>
-
-    <div id="nav-panel">
-        <div class="np-head">
-            <div class="np-head-icon"><i class="fas fa-school"></i></div>
-            <div>
-                <h3>แผนที่ห้องเรียน</h3>
-                <p>เลือกห้องหรือคลิกที่อาคาร</p>
-            </div>
+<div id="nav-panel">
+    <div class="np-head">
+        <div class="np-head-icon"><i class="fas fa-school"></i></div>
+        <div class="np-head-text">
+            <h3>📍 แผนที่โรงเรียน</h3>
+            <p>เลือก 1 ครั้ง • แตะอาคาร 2 ครั้ง</p>
         </div>
-        <div class="np-list" id="loc-list"></div>
-        <div class="np-foot">
-            <button class="btn-reset" id="btn-reset">
-                <i class="fas fa-rotate-left"></i> คืนค่ามุมมองทั้งหมด
-            </button>
+        <button class="np-close" id="np-close-btn"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="np-search">
+        <div class="np-search-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-input" placeholder="ค้นหาห้องเรียน หรืออาคาร..." autocomplete="off">
         </div>
     </div>
+    <div class="np-list" id="loc-list"></div>
+    <div class="np-foot">
+        <button class="btn-reset" id="btn-reset">
+            <i class="fas fa-rotate-left"></i> คืนค่ามุมมองโรงเรียน
+        </button>
+    </div>
+</div>
 
-    <!-- ③ importmap + ES module (เหมือนต้นฉบับที่ใช้ได้) -->
-    <script type="importmap">
-        { "imports": {
-            "three":          "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/addons/":  "https://unpkg.com/three@0.160.0/examples/jsm/"
-        } }
-    </script>
+<!-- Stars + utils -->
+<script>
+(function(){
+    var c = document.getElementById('stars');
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div'); s.className = 'star';
+        var sz = Math.random()*2+.7;
+        s.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+(Math.random()*100)+'%;top:'+(Math.random()*60)+'%;--d:'+(Math.random()*3+2).toFixed(1)+'s;--dl:'+(Math.random()*4).toFixed(1)+'s;';
+        c.appendChild(s);
+    }
+})();
+var _toastTid;
+window.showToast=function(msg,dur){
+    dur=dur||2400; var t=document.getElementById('toast');
+    t.textContent=msg; t.classList.add('show');
+    clearTimeout(_toastTid); _toastTid=setTimeout(function(){t.classList.remove('show');},dur);
+};
+var _hintTid;
+window.showHint=function(m1,m2){
+    var h=document.getElementById('dtap-hint');
+    h.querySelector('.dh-main').textContent=m1||'';
+    h.querySelector('.dh-sub').textContent=m2||'';
+    h.classList.add('show'); clearTimeout(_hintTid);
+    _hintTid=setTimeout(function(){h.classList.remove('show');},2400);
+};
+window.spawnRipple=function(x,y){
+    var r=document.createElement('div'); r.className='ripple';
+    r.style.left=x+'px'; r.style.top=y+'px';
+    document.body.appendChild(r);
+    r.addEventListener('animationend',function(){r.remove();},{once:true});
+};
+</script>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
+<!-- ③ importmap + module — เหมือนต้นฉบับ -->
+<script type="importmap">
+{ "imports": {
+    "three":          "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/":  "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
 
-        /* ─── Location data ─────────────────────────────────── */
-        const LOCS = [
-            { id:'ม.1/1', obj:'ระหว่างอาคาร1กับ2',     sub:'อาคาร 1–2' },
-            { id:'ม.1/2', obj:'ข้างสนามฟุตบอล',         sub:'ติดสนามฟุตบอล' },
-            { id:'ม.2/1', obj:'ถนนหน้าโรงเรียน',         sub:'ถนนหน้าโรงเรียน' },
-            { id:'ม.2/2', obj:'รอบโรงอาหารและห้องน้ำ',   sub:'โรงอาหาร / ห้องน้ำ' },
-            { id:'ม.3/1', obj:'รอบอาคาร3',               sub:'อาคาร 3' },
-            { id:'ม.3/2', obj:'ถนนข้างโรงอาหาร',         sub:'ข้างโรงอาหาร' },
-            { id:'ม.4/1', obj:'ถนนหน้าอาาร1',           sub:'หน้าอาคาร 1' },
-            { id:'ม.4/2', obj:'บนช็อป',                  sub:'ชั้นบนร้านค้า' },
-            { id:'ม.5/1', obj:'ถนนข้างหอประชุม',            sub:'หอประชุม' },
-            { id:'ม.5/2', obj:'สนามฟุตบอล',              sub:'สนามกีฬา' },
-            { id:'ม.6/1', obj:'สนามและหน้าเสาธง',        sub:'เสาธง / สนาม' },
-            { id:'ม.6/2', obj:'ถนนหน้าโรงอาหาร',         sub:'หน้าโรงอาหาร' },
-        ];
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
 
-        /* ─── Build nav list ────────────────────────────────── */
-        const listEl = document.getElementById('loc-list');
-        LOCS.forEach((loc, i) => {
-            const el = document.createElement('div');
-            el.className   = 'loc-item';
-            el.dataset.obj = loc.obj;
-            el.innerHTML   = `
-                <div class="li-num">${i+1}</div>
-                <div class="li-text">
-                    <div class="li-label">${loc.id}</div>
-                    <div class="li-sub">${loc.sub}</div>
-                </div>
-                <i class="fas fa-chevron-right li-arr"></i>`;
-            el.addEventListener('click', () => flyTo(loc.obj, loc.id, el));
-            listEl.appendChild(el);
-        });
+const LOCS = [
+    { id:'ม.1/1', obj:'ระหว่างอาคาร1กับ2',   sub:'บริเวณอาคาร 1–2',              emoji:'🏛️' },
+    { id:'ม.1/2', obj:'ข้างสนามฟุตบอล',       sub:'ริมสนามฟุตบอล',                emoji:'⚽' },
+    { id:'ม.2/1', obj:'ถนนหน้าโรงเรียน',       sub:'ทางเข้าหน้าโรงเรียน นบย.',    emoji:'🛣️' },
+    { id:'ม.2/2', obj:'รอบโรงอาหารและห้องน้ำ', sub:'โรงอาหาร / ห้องน้ำนักเรียน', emoji:'🍽️' },
+    { id:'ม.3/1', obj:'รอบอาคาร3',             sub:'รอบอาคาร 3',                   emoji:'🏢' },
+    { id:'ม.3/2', obj:'ถนนข้างโรงอาหาร',       sub:'ถนนข้างโรงอาหาร',             emoji:'🛤️' },
+    { id:'ม.4/1', obj:'ถนนหน้าอาคาร1',         sub:'หน้าอาคาร 1',                 emoji:'🚶' },
+    { id:'ม.4/2', obj:'บนช็อป',                sub:'ชั้นบนร้านค้า (ช็อป)',         emoji:'🛍️' },
+    { id:'ม.5/1', obj:'ถนนข้างหอประชุม',        sub:'ข้างหอประชุมโรงเรียน',         emoji:'🎭' },
+    { id:'ม.5/2', obj:'สนามฟุตบอล',            sub:'สนามกีฬาของโรงเรียน',          emoji:'🏟️' },
+    { id:'ม.6/1', obj:'สนามและหน้าเสาธง',      sub:'หน้าเสาธง / สนามกลาง',        emoji:'🚩' },
+    { id:'ม.6/2', obj:'ถนนหน้าโรงอาหาร',       sub:'ทางเข้าหน้าโรงอาหารนักเรียน', emoji:'🍜' },
+];
 
-        /* ─── Three.js state ────────────────────────────────── */
-        let scene, camera, renderer, controls, model;
-        let zoomDir = 0, zoomSpd = 0;
-        let highlighted = null, origMats = new Map();
-        let initCamPos = new THREE.Vector3(), initTarget = new THREE.Vector3();
-        let pulseTw = null, activeEl = null;
-        const raycaster = new THREE.Raycaster();
-        const mouse     = new THREE.Vector2();
+let flyLocked=false;
+function flyLock(){ flyLocked=true; setTimeout(()=>{ flyLocked=false; },900); }
 
-        /* ─── Scene setup ───────────────────────────────────── */
-        scene    = new THREE.Scene();
-        camera   = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 1, 10000);
-        renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-        renderer.setSize(innerWidth, innerHeight);
-        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-        document.body.appendChild(renderer.domElement);
+const listEl=document.getElementById('loc-list');
+LOCS.forEach((loc,i)=>{
+    const el=document.createElement('div');
+    el.className='loc-item'; el.dataset.obj=loc.obj;
+    el.style.setProperty('animation-delay',(i*0.04)+'s');
+    el.innerHTML=`<div class="li-emoji">${loc.emoji}</div><div class="li-text"><div class="li-label">${loc.id}</div><div class="li-sub">${loc.sub}</div></div><i class="fas fa-chevron-right li-arr"></i>`;
+    el.addEventListener('click',()=>{ if(flyLocked)return; flyLock(); flyTo(loc.obj,loc.id,el); closePanelIfMobile(); });
+    listEl.appendChild(el);
+});
 
-        scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-        const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-        sun.position.set(100, 300, 100); scene.add(sun);
+document.getElementById('search-input').addEventListener('input',function(){
+    const q=this.value.trim().toLowerCase();
+    listEl.querySelectorAll('.loc-item').forEach((el,i)=>{
+        const loc=LOCS[i];
+        const hit=!q||loc.id.toLowerCase().includes(q)||loc.sub.toLowerCase().includes(q)||loc.obj.toLowerCase().includes(q);
+        el.classList.toggle('hidden',!hit);
+    });
+});
 
-        controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping   = true;
-        controls.dampingFactor   = 0.08;
-        controls.enableZoom      = true;
-        controls.autoRotate      = false;
-        controls.autoRotateSpeed = 0.5;
-        controls.maxPolarAngle   = Math.PI / 2.1;
-        controls.minDistance     = 50;
-        controls.maxDistance     = 1500;
+let scene,camera,renderer,controls,model;
+let zoomDir=0,zoomSpd=0;
+let highlighted=null,origMats=new Map();
+let initCamPos=new THREE.Vector3(),initTarget=new THREE.Vector3();
+let pulseTw=null,activeEl=null;
+let autoRotating=false,groundY=0;
+const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
+let tapCount=0,tapTimer=null,ptDownX=0,ptDownY=0,isDrag=false,ptDownTime=0;
 
-        /* ─── Load GLB ───────────────────────────────────────
-           StellarLoader.hold() ถูกเรียกใน <script> synchronous
-           ด้านบนแล้ว ทำให้มั่นใจว่า loader ค้างรอแน่นอน
-        ──────────────────────────────────────────────────── */
-        let groundY = 0; /* ค่าพื้นต่ำสุดของโมเดล — ตั้งค่าหลังโหลด */
+scene=new THREE.Scene();
+camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,1,10000);
+renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+document.body.appendChild(renderer.domElement);
 
-        new GLTFLoader().load(
-            'school_map.glb',
-            (gltf) => {                          /* onLoad */
-                model = gltf.scene;
-                model.position.y += 2;           /* ยกโมเดลขึ้น 2 หน่วย — แก้บัคทะลุพื้น */
-                scene.add(model);
-                const box    = new THREE.Box3().setFromObject(model);
-                const center = box.getCenter(new THREE.Vector3());
-                groundY = box.min.y;             /* จดค่าพื้นจริงของโมเดล */
+scene.add(new THREE.AmbientLight(0xffffff,1.2));
+const sun=new THREE.DirectionalLight(0xffffff,1.5);
+sun.position.set(100,300,100); scene.add(sun);
 
-                initTarget.copy(center);
-                initCamPos.set(center.x+500, center.y+500, center.z+500);
-                controls.target.copy(initTarget);
-                camera.position.copy(initCamPos);
+controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true; controls.dampingFactor=0.08;
+controls.enableZoom=true; controls.autoRotate=false; controls.autoRotateSpeed=0.5;
+controls.maxPolarAngle=Math.PI/2.1; controls.minDistance=50; controls.maxDistance=1500;
 
-                /* ห้ามกล้องต่ำกว่าพื้น + margin เล็กน้อย */
-                controls.minPolarAngle = 0;
-                controls.maxPolarAngle = Math.PI / 2.1;
+/* ── Load GLB — เหมือนต้นฉบับทุกประการ ── */
+new GLTFLoader().load(
+    'school_map.glb',
+    (gltf)=>{
+        model=gltf.scene;
+        model.position.y+=2;
+        scene.add(model);
+        const box=new THREE.Box3().setFromObject(model);
+        const center=box.getCenter(new THREE.Vector3());
+        groundY=box.min.y;
+        initTarget.copy(center);
+        initCamPos.set(center.x+500,center.y+500,center.z+500);
+        controls.target.copy(initTarget);
+        camera.position.copy(initCamPos);
+        controls.minPolarAngle=0; controls.maxPolarAngle=Math.PI/2.1;
+        controls.update();
+        showToast('✅ โหลดแผนที่โรงเรียน นบย. สำเร็จ');
+        setTimeout(()=>showHint('แตะที่อาคาร 2 ครั้ง','เพื่อดูข้อมูลตำแหน่งในโรงเรียน'),1500);
+        requestAnimationFrame(()=>{ if(window.StellarLoader) window.StellarLoader.release(); });
+        animate();
+    },
+    null,
+    (err)=>{ console.error('GLB error:',err); if(window.StellarLoader) window.StellarLoader.release(); }
+);
 
-                controls.update();
+function flyTo(objName,label,itemEl){
+    if(!model) return;
+    let target=model.getObjectByName(objName);
+    if(!target) model.traverse(c=>{ if(!target&&c.name&&c.name.includes(objName)) target=c; });
+    if(!target){ showToast('⚠️ ไม่พบตำแหน่งนี้ในแผนที่'); return; }
+    clearHL(false);
+    highlighted=target;
+    if(itemEl){ activeEl=itemEl; itemEl.classList.add('active-loc'); }
+    target.traverse(c=>{
+        if(!c.isMesh) return;
+        origMats.set(c.uuid,c.material);
+        const mat=new THREE.MeshStandardMaterial({color:0x38bdf8,emissive:0x38bdf8,emissiveIntensity:.35,transparent:true,opacity:.84});
+        c.material=mat;
+        if(pulseTw) pulseTw.kill();
+        pulseTw=gsap.to(mat,{emissiveIntensity:1.4,duration:1.35,repeat:-1,yoyo:true,ease:'sine.inOut'});
+    });
+    document.getElementById('ic-name').textContent=label||objName;
+    document.getElementById('info-card').classList.add('active');
+    const box=new THREE.Box3().setFromObject(target);
+    const center=box.getCenter(new THREE.Vector3());
+    const size=box.getSize(new THREE.Vector3()).length();
+    const dist=Math.max(size*1.15,80);
+    gsap.to(controls.target,{x:center.x,y:center.y,z:center.z,duration:1.75,ease:'power3.inOut'});
+    gsap.to(camera.position,{
+        x:center.x+dist,y:center.y+dist,z:center.z+dist,
+        duration:1.75,ease:'power3.inOut',
+        onUpdate:()=>controls.update(),
+        onComplete:()=>{ if(autoRotating) controls.autoRotate=true; }
+    });
+    showToast('📍 '+(label||objName));
+}
 
-                requestAnimationFrame(() => {
-                    if (window.StellarLoader) window.StellarLoader.release();
-                });
-                animate();
-            },
-            null,
-            (err) => {
-                console.error('GLB error:', err);
-                if (window.StellarLoader) window.StellarLoader.release();
-            }
-        );
+function clearHL(moveCamera){
+    if(pulseTw){ pulseTw.kill(); pulseTw=null; }
+    if(highlighted){
+        highlighted.traverse(c=>{ if(c.isMesh&&origMats.has(c.uuid)) c.material=origMats.get(c.uuid); });
+        origMats.clear(); highlighted=null;
+        document.getElementById('info-card').classList.remove('active');
+    }
+    if(activeEl){ activeEl.classList.remove('active-loc'); activeEl=null; }
+    controls.autoRotate=autoRotating;
+    if(moveCamera){
+        gsap.to(controls.target,{x:initTarget.x,y:initTarget.y,z:initTarget.z,duration:1.3,ease:'expo.out'});
+        gsap.to(camera.position,{x:initCamPos.x,y:initCamPos.y,z:initCamPos.z,duration:1.3,ease:'expo.out',onUpdate:()=>controls.update()});
+        document.getElementById('nav-panel').classList.remove('active');
+        document.getElementById('btn-toggle').classList.remove('open');
+        showToast('🔄 คืนค่ามุมมองโรงเรียนแล้ว');
+    }
+}
 
-        /* ─── flyTo ─────────────────────────────────────────── */
-        function flyTo(objName, label, itemEl) {
-            if (!model) return;
+function raycastLoc(cx,cy){
+    if(!model) return null;
+    const rect=renderer.domElement.getBoundingClientRect();
+    mouse.x=((cx-rect.left)/rect.width)*2-1;
+    mouse.y=-((cy-rect.top)/rect.height)*2+1;
+    raycaster.setFromCamera(mouse,camera);
+    const hits=raycaster.intersectObjects(model.children,true);
+    for(const hit of hits){
+        let obj=hit.object;
+        while(obj){ const f=LOCS.find(l=>l.obj===obj.name); if(f) return f; obj=obj.parent; }
+    }
+    return null;
+}
 
-            /* หา object ตรง หรือ partial match */
-            let target = model.getObjectByName(objName);
-            if (!target) model.traverse(c => { if (!target && c.name?.includes(objName)) target = c; });
-            if (!target) {
-                if (innerWidth < 768) togglePanel();
-                return;
-            }
+renderer.domElement.addEventListener('pointerdown',e=>{ ptDownX=e.clientX; ptDownY=e.clientY; isDrag=false; ptDownTime=Date.now(); },{passive:true});
+renderer.domElement.addEventListener('pointermove',e=>{ if(Math.abs(e.clientX-ptDownX)>9||Math.abs(e.clientY-ptDownY)>9) isDrag=true; },{passive:true});
+renderer.domElement.addEventListener('pointerup',e=>{
+    if(isDrag||(Date.now()-ptDownTime)>450||!model||flyLocked) return;
+    const cx=e.clientX,cy=e.clientY;
+    tapCount++;
+    if(tapCount===1){ tapTimer=setTimeout(()=>{ tapCount=0; },360); }
+    else{
+        clearTimeout(tapTimer); tapCount=0; spawnRipple(cx,cy);
+        const found=raycastLoc(cx,cy);
+        if(found){ flyLock(); const liEl=[...listEl.querySelectorAll('.loc-item')].find(el=>el.dataset.obj===found.obj)||null; flyTo(found.obj,found.id,liEl); }
+        else showHint('ไม่พบอาคารในจุดนี้','ลองแตะที่ตัวอาคารโดยตรง');
+    }
+});
+renderer.domElement.addEventListener('mousemove',e=>{
+    if(!model) return;
+    const rect=renderer.domElement.getBoundingClientRect();
+    mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+    mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    raycaster.setFromCamera(mouse,camera);
+    renderer.domElement.style.cursor=raycaster.intersectObjects(model.children,true).length?'pointer':'default';
+},{passive:true});
 
-            clearHL(false);
-            highlighted = target;
-            if (activeEl) activeEl.classList.remove('active-loc');
-            activeEl = itemEl || null;
-            if (activeEl) activeEl.classList.add('active-loc');
+function togglePanel(){
+    const panel=document.getElementById('nav-panel'),fab=document.getElementById('btn-toggle');
+    const open=panel.classList.toggle('active'); fab.classList.toggle('open',open);
+    if(open){ document.getElementById('search-input').value=''; listEl.querySelectorAll('.loc-item').forEach(el=>el.classList.remove('hidden')); }
+}
+function closePanelIfMobile(){ if(innerWidth<768){ document.getElementById('nav-panel').classList.remove('active'); document.getElementById('btn-toggle').classList.remove('open'); } }
 
-            target.traverse(c => {
-                if (!c.isMesh) return;
-                origMats.set(c, c.material);
-                const mat = new THREE.MeshStandardMaterial({
-                    color:0x38bdf8, emissive:0x38bdf8,
-                    emissiveIntensity:.3, transparent:true, opacity:.82
-                });
-                c.material = mat;
-                if (pulseTw) pulseTw.kill();
-                pulseTw = gsap.to(mat, { emissiveIntensity:1.3, duration:1.4, repeat:-1, yoyo:true, ease:'sine.inOut' });
-            });
+function holdZoom(id,dir){
+    const btn=document.getElementById(id);
+    btn.addEventListener('pointerdown',e=>{ btn.setPointerCapture(e.pointerId); zoomDir=dir; controls.autoRotate=false; });
+    btn.addEventListener('pointerup',()=>{ zoomDir=0; controls.autoRotate=autoRotating; });
+    btn.addEventListener('pointercancel',()=>{ zoomDir=0; controls.autoRotate=autoRotating; });
+}
+holdZoom('btn-in',-1); holdZoom('btn-out',1);
 
-            document.getElementById('ic-name').textContent = label || objName;
-            document.getElementById('info-card').classList.add('active');
+document.getElementById('btn-toggle').addEventListener('click',togglePanel);
+document.getElementById('np-close-btn').addEventListener('click',()=>{ document.getElementById('nav-panel').classList.remove('active'); document.getElementById('btn-toggle').classList.remove('open'); });
+document.getElementById('btn-reset').addEventListener('click',()=>clearHL(true));
+document.getElementById('ic-close').addEventListener('click',()=>clearHL(false));
+document.getElementById('btn-rotate').addEventListener('click',()=>{
+    autoRotating=!autoRotating; controls.autoRotate=autoRotating;
+    document.getElementById('btn-rotate').classList.toggle('active-btn',autoRotating);
+    showToast(autoRotating?'🔄 เปิดหมุนอัตโนมัติ':'⏹️ ปิดหมุนอัตโนมัติ');
+});
+document.getElementById('btn-compass').addEventListener('click',()=>{
+    gsap.to(controls.target,{x:initTarget.x,y:initTarget.y,z:initTarget.z,duration:1.2,ease:'expo.out'});
+    gsap.to(camera.position,{x:initCamPos.x,y:initCamPos.y,z:initCamPos.z,duration:1.2,ease:'expo.out',onUpdate:()=>controls.update()});
+    showToast('🧭 คืนมุมมองเริ่มต้นแล้ว');
+});
+document.getElementById('btn-back').addEventListener('click',()=>{ if(history.length>1) history.back(); else showToast('⬅️ ไม่มีหน้าก่อนหน้า'); });
 
-            const box    = new THREE.Box3().setFromObject(target);
-            const center = box.getCenter(new THREE.Vector3());
-            const size   = box.getSize(new THREE.Vector3()).length();
-            const dist   = Math.max(size * 1.1, 80);
+window.addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
 
-            gsap.to(camera.position, {
-                x:center.x+dist, y:center.y+dist, z:center.z+dist,
-                duration:1.8, ease:'power3.inOut',
-                onUpdate:   () => controls.update(),
-                onComplete: () => { controls.autoRotate = true; }
-            });
-            gsap.to(controls.target, {
-                x:center.x, y:center.y, z:center.z,
-                duration:1.8, ease:'power3.inOut'
-            });
-
-            if (innerWidth < 768) togglePanel();
-        }
-
-        /* ─── clearHL ────────────────────────────────────────── */
-        function clearHL(moveCamera) {
-            if (pulseTw) { pulseTw.kill(); pulseTw = null; }
-            if (highlighted) {
-                highlighted.traverse(c => {
-                    if (c.isMesh && origMats.has(c)) c.material = origMats.get(c);
-                });
-                origMats.clear(); highlighted = null;
-                document.getElementById('info-card').classList.remove('active');
-            }
-            if (activeEl) { activeEl.classList.remove('active-loc'); activeEl = null; }
-            controls.autoRotate = false;
-            if (moveCamera) {
-                gsap.to(controls.target, { x:initTarget.x, y:initTarget.y, z:initTarget.z, duration:1.2, ease:'expo.out' });
-                gsap.to(camera.position, {
-                    x:initCamPos.x, y:initCamPos.y, z:initCamPos.z,
-                    duration:1.2, ease:'expo.out', onUpdate:() => controls.update()
-                });
-                const panel = document.getElementById('nav-panel');
-                if (panel.classList.contains('active')) togglePanel();
-            }
-        }
-
-        /* ─── Raycast click ──────────────────────────────────── */
-        let ptDown = { x:0, y:0 };
-        renderer.domElement.addEventListener('pointerdown', e => { ptDown.x=e.clientX; ptDown.y=e.clientY; });
-        renderer.domElement.addEventListener('pointerup', e => {
-            if (Math.abs(e.clientX-ptDown.x)>6 || Math.abs(e.clientY-ptDown.y)>6 || !model) return;
-            const rect = renderer.domElement.getBoundingClientRect();
-            mouse.x =  ((e.clientX-rect.left)/rect.width) *2-1;
-            mouse.y = -((e.clientY-rect.top) /rect.height)*2+1;
-            raycaster.setFromCamera(mouse, camera);
-
-            /* intersectObjects คืน hits เรียงจากใกล้→ไกล
-               วนทุก hit จนเจอ object ที่ match LOCS
-               → คลิก "ทะลุ" โมเดลที่บังได้ */
-            const hits = raycaster.intersectObjects(model.children, true);
-            let found = null;
-            for (const hit of hits) {
-                let obj = hit.object;
-                while (obj && !found) {
-                    found = LOCS.find(l => l.obj === obj.name) || null;
-                    obj = obj.parent;
-                }
-                if (found) break;
-            }
-            if (found) {
-                const liEl = [...listEl.querySelectorAll('.loc-item')].find(el=>el.dataset.obj===found.obj)||null;
-                flyTo(found.obj, found.id, liEl);
-            }
-        });
-        /* hover cursor */
-        renderer.domElement.addEventListener('mousemove', e => {
-            if (!model) return;
-            const rect = renderer.domElement.getBoundingClientRect();
-            mouse.x =  ((e.clientX-rect.left)/rect.width) *2-1;
-            mouse.y = -((e.clientY-rect.top) /rect.height)*2+1;
-            raycaster.setFromCamera(mouse, camera);
-            renderer.domElement.style.cursor =
-                raycaster.intersectObjects(model.children,true).length ? 'pointer' : 'default';
-        });
-
-        /* ─── Toggle panel ───────────────────────────────────── */
-        function togglePanel() {
-            document.getElementById('nav-panel').classList.toggle('active');
-            document.getElementById('btn-toggle').classList.toggle('open');
-        }
-
-        /* ─── Buttons ────────────────────────────────────────── */
-        function holdZoom(id, dir) {
-            const btn = document.getElementById(id);
-            btn.addEventListener('pointerdown', e => { btn.setPointerCapture(e.pointerId); zoomDir=dir; controls.autoRotate=false; });
-            btn.addEventListener('pointerup',     () => zoomDir=0);
-            btn.addEventListener('pointercancel', () => zoomDir=0);
-        }
-        holdZoom('btn-in', -1); holdZoom('btn-out', 1);
-        document.getElementById('btn-toggle').addEventListener('click', togglePanel);
-        document.getElementById('btn-reset').addEventListener('click',  () => clearHL(true));
-        document.getElementById('ic-close').addEventListener('click',   () => clearHL(false));
-
-        /* ─── Resize ─────────────────────────────────────────── */
-        window.addEventListener('resize', () => {
-            camera.aspect = innerWidth/innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(innerWidth, innerHeight);
-        });
-
-        /* ─── Render loop ────────────────────────────────────── */
-        function animate() {
-            requestAnimationFrame(animate);
-            zoomSpd += (zoomDir*12 - zoomSpd)*0.15;
-            if (Math.abs(zoomSpd) > 0.01) {
-                const d = new THREE.Vector3();
-                camera.getWorldDirection(d);
-                camera.position.addScaledVector(d, -zoomSpd);
-                controls.update();
-            }
-            /* clamp กล้องไม่ให้ต่ำกว่าพื้นโมเดล */
-            if (camera.position.y < groundY + 10) {
-                camera.position.y = groundY + 10;
-            }
-            controls.update();
-            renderer.render(scene, camera);
-        }
-    </script>
+function animate(){
+    requestAnimationFrame(animate);
+    zoomSpd+=(zoomDir*12-zoomSpd)*0.15;
+    if(Math.abs(zoomSpd)>0.01){ const d=new THREE.Vector3(); camera.getWorldDirection(d); camera.position.addScaledVector(d,-zoomSpd); }
+    if(camera.position.y<groundY+10) camera.position.y=groundY+10;
+    controls.update();
+    renderer.render(scene,camera);
+}
+</script>
 </body>
 </html>
