@@ -4,338 +4,561 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>N.B.Y. Stellar 3D Campus</title>
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
     <style>
         :root {
-            --accent: #38bdf8;
-            --accent-glow: rgba(56, 189, 248, 0.4);
-            --glass: rgba(15, 23, 42, 0.85);
-            --border: rgba(255, 255, 255, 0.15);
-            --edge: 16px;
-            --safe-bottom: calc(var(--edge) + env(safe-area-inset-bottom, 0px));
+            --accent:        #38bdf8;
+            --accent-glow:   rgba(56,189,248,0.35);
+            --glass:         rgba(10,18,36,0.85);
+            --glass-light:   rgba(255,255,255,0.04);
+            --border:        rgba(255,255,255,0.12);
+            --border-accent: rgba(56,189,248,0.35);
+            --text-dim:      rgba(148,163,184,0.85);
+            --edge:          18px;
+            --safe-bottom:   calc(var(--edge) + env(safe-area-inset-bottom,0px));
+            --safe-top:      calc(var(--edge) + env(safe-area-inset-top,0px));
         }
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
         body {
-            margin: 0; padding: 0; overflow: hidden;
-            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
-            font-family: 'Kanit', sans-serif;
-            touch-action: none; color: white;
-            -webkit-tap-highlight-color: transparent;
+            overflow:hidden;
+            background:radial-gradient(ellipse at 50% 0%, #0f1f3d 0%, #020817 60%);
+            font-family:'Kanit',sans-serif;
+            touch-action:none; color:white;
+            -webkit-tap-highlight-color:transparent;
         }
 
+
+
+        /* ── INFO CARD ── */
         #info-card {
-            position: absolute; 
-            bottom: calc(var(--safe-bottom) + 85px); 
-            left: 50%; 
-            transform: translateX(-50%) translateY(15px);
-            background: var(--glass); 
-            border: 1px solid var(--border);
-            padding: 8px 18px; border-radius: 100px;
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 10px var(--accent-glow);
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 99; opacity: 0; pointer-events: none;
-            border-top: 2px solid var(--accent);
-            font-size: 0.9rem;
-            max-width: 80vw;
-            text-align: center;
+            position:fixed;
+            bottom:calc(var(--safe-bottom) + 90px);
+            left:50%; transform:translateX(-50%) translateY(18px);
+            background:var(--glass);
+            border:1px solid var(--border-accent); border-top:2px solid var(--accent);
+            padding:10px 20px 10px 14px; border-radius:999px;
+            backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+            box-shadow:0 8px 32px rgba(0,0,0,.5), 0 0 20px var(--accent-glow);
+            z-index:200; opacity:0; pointer-events:none;
+            transition:.4s cubic-bezier(.175,.885,.32,1.275);
+            display:flex; align-items:center; gap:10px;
+            max-width:calc(100vw - 130px);
         }
-        #info-card.active { transform: translateX(-50%) translateY(0); opacity: 1; }
+        #info-card.active { transform:translateX(-50%) translateY(0); opacity:1; pointer-events:auto; }
+        .ic-dot {
+            width:26px; height:26px; border-radius:50%; flex-shrink:0;
+            background:rgba(56,189,248,.12); border:1px solid var(--border-accent);
+            display:flex; align-items:center; justify-content:center;
+            font-size:10px; color:var(--accent);
+        }
+        #ic-name { font-size:.9rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #ic-close {
+            width:20px; height:20px; border-radius:50%; background:rgba(255,255,255,.08);
+            border:none; color:rgba(255,255,255,.4); font-size:8px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            flex-shrink:0; transition:.2s; margin-left:2px;
+        }
+        #ic-close:hover { background:rgba(239,68,68,.2); color:#ef4444; }
 
-        .zoom-controls {
-            position: absolute; right: var(--edge); bottom: var(--safe-bottom);
-            display: flex; flex-direction: column; gap: 10px; z-index: 101;
+        /* ── ZOOM BUTTONS (right) ── */
+        .ctrl-right {
+            position:fixed; right:var(--edge); bottom:var(--safe-bottom);
+            display:flex; flex-direction:column; gap:9px; z-index:200;
+            animation:fadeR .7s .4s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes fadeR { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
+
+        .cbtn {
+            width:48px; height:48px; background:var(--glass); border:1px solid var(--border);
+            border-radius:15px; color:rgba(255,255,255,.65); font-size:16px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+            box-shadow:0 4px 16px rgba(0,0,0,.35);
+            transition:.2s; user-select:none; -webkit-user-select:none;
+        }
+        .cbtn:hover { border-color:var(--border-accent); color:var(--accent); transform:scale(1.07); }
+        .cbtn:active { transform:scale(.88); }
+
+        /* ── FAB + PANEL (left) ── */
+        .ctrl-left {
+            position:fixed; left:var(--edge); bottom:var(--safe-bottom); z-index:200;
+            animation:fadeL .7s .4s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes fadeL { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+
+        #btn-toggle {
+            width:58px; height:58px; border-radius:18px;
+            background:linear-gradient(135deg,var(--accent),#0ea5e9);
+            border:none; color:#001828; font-size:22px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            box-shadow:0 8px 24px rgba(56,189,248,.45);
+            transition:.3s; user-select:none; -webkit-user-select:none;
+        }
+        #btn-toggle:hover { transform:scale(1.05); box-shadow:0 10px 30px rgba(56,189,248,.55); }
+        #btn-toggle:active { transform:scale(.9); }
+        #btn-toggle.open {
+            background:linear-gradient(135deg,#ef4444,#f97316);
+            box-shadow:0 8px 24px rgba(239,68,68,.4);
+            transform:rotate(135deg);
         }
 
-        .nav-controls {
-            position: absolute; left: var(--edge); bottom: var(--safe-bottom); z-index: 101;
+        /* ── NAV PANEL ── */
+        #nav-panel {
+            position:fixed;
+            bottom:calc(var(--safe-bottom) + 76px);
+            left:var(--edge);
+            width:min(340px, calc(100vw - var(--edge)*2));
+            background:var(--glass);
+            backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+            border:1px solid var(--border); border-radius:24px; overflow:hidden;
+            transform:translateY(22px) scale(.96); opacity:0; pointer-events:none;
+            transition:all .38s cubic-bezier(.23,1,.32,1);
+            z-index:300;
+            box-shadow:0 24px 48px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
         }
+        #nav-panel.active { transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
 
-        .action-btn {
-            width: 50px; height: 50px; background: var(--glass);
-            border: 1px solid var(--border); border-radius: 16px;
-            color: white; font-size: 18px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            transition: 0.2s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        .np-head {
+            padding:15px 16px 11px; border-bottom:1px solid var(--border);
+            display:flex; align-items:center; gap:10px;
         }
-        .action-btn:active { transform: scale(0.9); background: var(--accent); color: #000; }
-        
-        .nav-toggle { 
-            background: var(--accent); color: #000; border: none; 
-            width: 58px; height: 58px; border-radius: 20px; font-size: 22px; 
+        .np-head-icon {
+            width:30px; height:30px; border-radius:9px;
+            background:rgba(56,189,248,.1); border:1px solid var(--border-accent);
+            display:flex; align-items:center; justify-content:center;
+            font-size:12px; color:var(--accent);
         }
-        .nav-toggle.active { background: #ef4444; color: white; transform: rotate(45deg); }
+        .np-head h3 { font-size:.88rem; font-weight:600; }
+        .np-head p  { font-size:.68rem; color:var(--text-dim); margin-top:1px; }
 
-        #nav-menu {
-            position: absolute; 
-            bottom: calc(var(--safe-bottom) + 75px); 
-            left: var(--edge);
-            right: var(--edge);
-            max-width: 400px;
-            margin: 0 auto;
-            background: var(--glass);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--border); border-radius: 28px; padding: 20px;
-            transform: translateY(30px) scale(0.95); opacity: 0; pointer-events: none;
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-            z-index: 105; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        .np-list {
+            max-height:40vh; overflow-y:auto;
+            padding:8px 10px 10px;
+            display:flex; flex-direction:column; gap:4px;
+            scrollbar-width:thin; scrollbar-color:rgba(56,189,248,.2) transparent;
         }
-        #nav-menu.active { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
+        .np-list::-webkit-scrollbar { width:3px; }
+        .np-list::-webkit-scrollbar-thumb { background:rgba(56,189,248,.25); border-radius:4px; }
 
-        .location-list {
-            max-height: 40vh; overflow-y: auto; display: flex;
-            flex-direction: column; gap: 8px; padding-right: 5px;
-            -webkit-overflow-scrolling: touch;
-        }
-        
         .loc-item {
-            padding: 12px 16px; background: rgba(255,255,255,0.05);
-            border-radius: 14px; cursor: pointer; border: 1px solid transparent;
-            transition: 0.2s; display: flex; align-items: center; gap: 12px;
-            font-size: 0.95rem;
+            padding:11px 13px; border-radius:13px;
+            background:var(--glass-light); border:1px solid transparent;
+            cursor:pointer; display:flex; align-items:center; gap:11px;
+            font-size:.88rem; transition:.16s;
         }
-        .loc-item:active { background: rgba(56, 189, 248, 0.2); border-color: var(--accent); }
-        .loc-item i { color: var(--accent); font-size: 1rem; width: 24px; text-align: center; }
+        .loc-item:hover  { background:rgba(56,189,248,.07); border-color:rgba(56,189,248,.18); }
+        .loc-item:active { background:rgba(56,189,248,.14); transform:scale(.98); }
+        .loc-item.active-loc { background:rgba(56,189,248,.11); border-color:var(--border-accent); }
+        .li-num {
+            width:26px; height:26px; border-radius:8px; flex-shrink:0;
+            background:rgba(56,189,248,.08); border:1px solid rgba(56,189,248,.14);
+            display:flex; align-items:center; justify-content:center;
+            font-size:.7rem; font-weight:700; color:var(--accent);
+            font-family:'Space Mono',monospace;
+        }
+        .li-text { flex:1; }
+        .li-label { font-weight:600; font-size:.88rem; }
+        .li-sub   { font-size:.68rem; color:var(--text-dim); margin-top:1px; }
+        .li-arr   { font-size:9px; color:var(--text-dim); transition:.16s; }
+        .loc-item:hover .li-arr { color:var(--accent); transform:translateX(3px); }
 
-        .reset-container {
-            margin-top: 15px; padding-top: 15px;
-            border-top: 1px solid var(--border);
+        .np-foot {
+            padding:9px 12px 13px; border-top:1px solid var(--border);
         }
-        .btn-reset-view {
-            width: 100%; padding: 14px;
-            background: rgba(239, 68, 68, 0.1); border: 1px dashed #ef4444;
-            border-radius: 16px; color: #ef4444; font-family: 'Kanit', sans-serif;
-            font-weight: 600; cursor: pointer; display: flex;
-            align-items: center; justify-content: center; gap: 8px;
+        .btn-reset {
+            width:100%; padding:11px;
+            background:rgba(239,68,68,.07); border:1px dashed rgba(239,68,68,.38);
+            border-radius:12px; color:#f87171;
+            font-family:'Kanit'; font-weight:600; font-size:.83rem; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; gap:8px;
+            transition:.18s;
+        }
+        .btn-reset:hover { background:rgba(239,68,68,.13); }
+
+
+
+        /* ── SCANLINES ── */
+        body::after {
+            content:''; position:fixed; inset:0; pointer-events:none; z-index:1;
+            background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.025) 2px,rgba(0,0,0,.025) 4px);
         }
     </style>
 </head>
 <body>
+
+    <!-- ① Loader ก่อนทุกอย่าง -->
     <script src="All/กำลังโหลด.js"></script>
     <script src="All/ย้อนกลับ.js"></script>
     <script src="All/พื้นหลัง.js"></script>
-    
+
+    <!-- ② บอก StellarLoader ให้รอ GLB — ณ จุดนี้ script synchronous โหลดเสร็จแล้ว -->
+    <script>if (window.StellarLoader) window.StellarLoader.hold();</script>
+
+    <!-- UI -->
     <div id="info-card">
-        <span id="target-name">N.B.Y. Campus</span>
+        <div class="ic-dot"><i class="fas fa-location-dot"></i></div>
+        <span id="ic-name">—</span>
+        <button id="ic-close"><i class="fas fa-times"></i></button>
     </div>
 
-    <div class="nav-controls">
-        <button id="btn-toggle" class="action-btn nav-toggle" onclick="toggleMenu()">
-            <i class="fas fa-map-marked-alt"></i>
-        </button>
+    <div class="ctrl-right">
+        <button class="cbtn" id="btn-in" ><i class="fas fa-plus"></i></button>
+        <button class="cbtn" id="btn-out"><i class="fas fa-minus"></i></button>
     </div>
 
-    <div class="zoom-controls">
-        <button id="btn-in" class="action-btn"><i class="fas fa-plus"></i></button>
-        <button id="btn-out" class="action-btn"><i class="fas fa-minus"></i></button>
+    <div class="ctrl-left">
+        <button id="btn-toggle"><i class="fas fa-map-marked-alt"></i></button>
     </div>
 
-    <div id="nav-menu">
-        <div class="location-list">
-            <div class="loc-item" onclick="flyTo('ระหว่างอาคาร1กับ2')"><i class="fas fa-building"></i> ม.1/1</div>
-            <div class="loc-item" onclick="flyTo('ข้างสนามฟุตบอล')"><i class="fas fa-building"></i> ม.1/2</div>
-            <div class="loc-item" onclick="flyTo('ถนนหน้าโรงเรียน')"><i class="fas fa-building"></i> ม.2/1</div>
-            <div class="loc-item" onclick="flyTo('รอบโรงอาหารและห้องน้ำ')"><i class="fas fa-building"></i> ม.2/2</div>
-            <div class="loc-item" onclick="flyTo('รอบอาคาร3')"><i class="fas fa-building"></i> ม.3/1</div>
-            <div class="loc-item" onclick="flyTo('ถนนข้างโรงอาหาร')"><i class="fas fa-building"></i> ม.3/2</div>
-            <div class="loc-item" onclick="flyTo('ถนนหน้าอาาร1')"><i class="fas fa-building"></i> ม.4/1</div>
-            <div class="loc-item" onclick="flyTo('บนช็อป')"><i class="fas fa-building"></i> ม.4/2</div>
-            <div class="loc-item" onclick="flyTo('ข้างหอประชุม')"><i class="fas fa-building"></i> ม.5/1</div>
-            <div class="loc-item" onclick="flyTo('สนามฟุตบอล')"><i class="fas fa-building"></i> ม.5/2</div>
-            <div class="loc-item" onclick="flyTo('สนามและหน้าเสาธง')"><i class="fas fa-building"></i> ม.6/1</div>
-            <div class="loc-item" onclick="flyTo('ถนนหน้าโรงอาหาร')"><i class="fas fa-building"></i> ม.6/2</div>
+    <div id="nav-panel">
+        <div class="np-head">
+            <div class="np-head-icon"><i class="fas fa-school"></i></div>
+            <div>
+                <h3>แผนที่ห้องเรียน</h3>
+                <p>เลือกห้องหรือคลิกที่อาคาร</p>
+            </div>
         </div>
-
-        <div class="reset-container">
-            <button class="btn-reset-view" onclick="resetHighlight(true)">
-                <i class="fas fa-compress-arrows-alt"></i> คืนค่ามุมมองทั้งหมด
+        <div class="np-list" id="loc-list"></div>
+        <div class="np-foot">
+            <button class="btn-reset" id="btn-reset">
+                <i class="fas fa-rotate-left"></i> คืนค่ามุมมองทั้งหมด
             </button>
         </div>
     </div>
 
+    <!-- ③ importmap + ES module (เหมือนต้นฉบับที่ใช้ได้) -->
     <script type="importmap">
-        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+        { "imports": {
+            "three":          "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/":  "https://unpkg.com/three@0.160.0/examples/jsm/"
+        } }
     </script>
 
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
 
+        /* ─── Location data ─────────────────────────────────── */
+        const LOCS = [
+            { id:'ม.1/1', obj:'ระหว่างอาคาร1กับ2',     sub:'อาคาร 1–2' },
+            { id:'ม.1/2', obj:'ข้างสนามฟุตบอล',         sub:'ติดสนามฟุตบอล' },
+            { id:'ม.2/1', obj:'ถนนหน้าโรงเรียน',         sub:'ถนนหน้าโรงเรียน' },
+            { id:'ม.2/2', obj:'รอบโรงอาหารและห้องน้ำ',   sub:'โรงอาหาร / ห้องน้ำ' },
+            { id:'ม.3/1', obj:'รอบอาคาร3',               sub:'อาคาร 3' },
+            { id:'ม.3/2', obj:'ถนนข้างโรงอาหาร',         sub:'ข้างโรงอาหาร' },
+            { id:'ม.4/1', obj:'ถนนหน้าอาคาร1',           sub:'หน้าอาคาร 1' },
+            { id:'ม.4/2', obj:'บนช็อป',                  sub:'ชั้นบนร้านค้า' },
+            { id:'ม.5/1', obj:'ข้างหอประชุม',            sub:'หอประชุม' },
+            { id:'ม.5/2', obj:'สนามฟุตบอล',              sub:'สนามกีฬา' },
+            { id:'ม.6/1', obj:'สนามและหน้าเสาธง',        sub:'เสาธง / สนาม' },
+            { id:'ม.6/2', obj:'ถนนหน้าโรงอาหาร',         sub:'หน้าโรงอาหาร' },
+        ];
+
+        /* ─── Build nav list ────────────────────────────────── */
+        const listEl = document.getElementById('loc-list');
+        LOCS.forEach((loc, i) => {
+            const el = document.createElement('div');
+            el.className   = 'loc-item';
+            el.dataset.obj = loc.obj;
+            el.innerHTML   = `
+                <div class="li-num">${i+1}</div>
+                <div class="li-text">
+                    <div class="li-label">${loc.id}</div>
+                    <div class="li-sub">${loc.sub}</div>
+                </div>
+                <i class="fas fa-chevron-right li-arr"></i>`;
+            el.addEventListener('click', () => flyTo(loc.obj, loc.id, el));
+            listEl.appendChild(el);
+        });
+
+        /* ─── Three.js state ────────────────────────────────── */
         let scene, camera, renderer, controls, model;
-        let zoomDir = 0, currentZoomSpeed = 0;
-        let lastHighlightedObject = null;
-        let originalMaterials = new Map();
-        let initialCameraPos = new THREE.Vector3();
-        let initialTargetPos = new THREE.Vector3();
-        let pulseTween = null; // เก็บ Animation กะพริบ
+        let zoomDir = 0, zoomSpd = 0;
+        let highlighted = null, origMats = new Map();
+        let initCamPos = new THREE.Vector3(), initTarget = new THREE.Vector3();
+        let pulseTw = null, activeEl = null;
+        const raycaster = new THREE.Raycaster();
+        const mouse     = new THREE.Vector2();
 
-        init();
+        /* ─── Scene setup ───────────────────────────────────── */
+        scene    = new THREE.Scene();
+        camera   = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 1, 10000);
+        renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
 
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-            
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            document.body.appendChild(renderer.domElement);
+        scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+        sun.position.set(100, 300, 100); scene.add(sun);
 
-            const ambient = new THREE.AmbientLight(0xffffff, 1.2); scene.add(ambient);
-            const sun = new THREE.DirectionalLight(0xffffff, 1.5); sun.position.set(100, 300, 100); scene.add(sun);
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping   = true;
+        controls.dampingFactor   = 0.08;
+        controls.enableZoom      = true;
+        controls.autoRotate      = false;
+        controls.autoRotateSpeed = 0.5;
+        controls.minPolarAngle   = 0.15;          /* ก้มได้น้อยสุด ~9° จากแนวนอน */
+        controls.maxPolarAngle   = Math.PI / 2.3; /* ไม่ให้ต่ำกว่าแนวระนาบ */
+        controls.minDistance     = 80;            /* ซูมเข้าได้แค่นี้ ไม่ให้ทะลุอาคาร */
+        controls.maxDistance     = 1500;
 
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.08;
-            controls.enableZoom = true;
-            
-            // ตั้งค่าการหมุนอัตโนมัติ (ปิดไว้ก่อนจนกว่าจะกดเลือกตำแหน่ง)
-            controls.autoRotate = false;
-            controls.autoRotateSpeed = 0.5; // หมุนช้าๆ
+        /* ─── Load GLB ───────────────────────────────────────
+           StellarLoader.hold() ถูกเรียกใน <script> synchronous
+           ด้านบนแล้ว ทำให้มั่นใจว่า loader ค้างรอแน่นอน
+        ──────────────────────────────────────────────────── */
+        let groundY      = 0;
+        let solidMeshes  = []; /* mesh ที่ถือว่าเป็น "ผนัง" — สแกนหลังโหลด */
 
-            controls.maxPolarAngle = Math.PI / 2.1;
-            controls.minDistance = 50;
-            controls.maxDistance = 1500;
+        /* ── สแกนโมเดล เก็บ mesh ที่ใหญ่พอให้เป็นอาคาร/ผนัง ──────
+           เกณฑ์: สูง > MIN_H หน่วย AND มี volume > MIN_VOL
+           ต้นไม้มักสูงมากแต่ volume น้อย → กรองออกได้ด้วย MIN_VOL
+        ────────────────────────────────────────────────────────── */
+        const MIN_H   = 4;       /* ความสูงขั้นต่ำ (หน่วยโมเดล) */
+        const MIN_VOL = 2000;    /* volume ขั้นต่ำ (หน่วย³)      */
 
-            const loader = new GLTFLoader();
-            loader.load('school_map.glb', (gltf) => {
+        function scanSolidMeshes(root) {
+            solidMeshes = [];
+            root.traverse(child => {
+                if (!child.isMesh || !child.geometry) return;
+                const b    = new THREE.Box3().setFromObject(child);
+                const size = b.getSize(new THREE.Vector3());
+                if (size.y < MIN_H) return;                    /* แบนเกิน → พื้น/ถนน */
+                if (size.x*size.y*size.z < MIN_VOL) return;   /* เล็กเกิน → ใบไม้/รายละเอียด */
+                solidMeshes.push(child);
+            });
+            console.log(`[Collision] scanned ${solidMeshes.length} solid meshes`);
+        }
+
+        new GLTFLoader().load(
+            'school_map.glb',
+            (gltf) => {                          /* onLoad */
                 model = gltf.scene;
                 scene.add(model);
-                const box = new THREE.Box3().setFromObject(model);
+                const box    = new THREE.Box3().setFromObject(model);
                 const center = box.getCenter(new THREE.Vector3());
-                initialTargetPos.copy(center);
-                initialCameraPos.set(center.x + 500, center.y + 500, center.z + 500);
-                controls.target.copy(initialTargetPos);
-                camera.position.copy(initialCameraPos);
+                groundY = box.min.y;
+
+                initTarget.copy(center);
+                initCamPos.set(center.x+500, center.y+500, center.z+500);
+                controls.target.copy(initTarget);
+                camera.position.copy(initCamPos);
+                controls.maxPolarAngle = Math.PI / 2.1;
+                controls.update();
+
+                /* สแกนหลังโมเดลอยู่ใน scene แล้ว (world matrix พร้อม) */
+                scanSolidMeshes(model);
+
+                requestAnimationFrame(() => {
+                    if (window.StellarLoader) window.StellarLoader.release();
+                });
                 animate();
-            });
+            },
+            null,
+            (err) => {
+                console.error('GLB error:', err);
+                if (window.StellarLoader) window.StellarLoader.release();
+            }
+        );
 
-            setupZoomButtons();
-            window.addEventListener('resize', onWindowResize);
-        }
-
-        window.flyTo = (objectName) => {
+        /* ─── flyTo ─────────────────────────────────────────── */
+        function flyTo(objName, label, itemEl) {
             if (!model) return;
-            const targetObj = model.getObjectByName(objectName);
-            if (!targetObj) return;
 
-            resetHighlight(false);
-            lastHighlightedObject = targetObj;
+            /* หา object ตรง หรือ partial match */
+            let target = model.getObjectByName(objName);
+            if (!target) model.traverse(c => { if (!target && c.name?.includes(objName)) target = c; });
+            if (!target) {
+                if (innerWidth < 768) togglePanel();
+                return;
+            }
 
-            const box = new THREE.Box3().setFromObject(targetObj);
-            const center = new THREE.Vector3();
-            box.getCenter(center);
-            const size = box.getSize(new THREE.Vector3()).length();
+            clearHL(false);
+            highlighted = target;
+            if (activeEl) activeEl.classList.remove('active-loc');
+            activeEl = itemEl || null;
+            if (activeEl) activeEl.classList.add('active-loc');
 
-            // สร้างวัสดุไฮไลท์และใส่เอฟเฟกต์กะพริบ
-            targetObj.traverse((child) => {
-                if (child.isMesh) {
-                    originalMaterials.set(child, child.material);
-                    const highlightMat = new THREE.MeshStandardMaterial({ 
-                        color: 0x38bdf8, 
-                        emissive: 0x38bdf8, 
-                        emissiveIntensity: 0.3, // เริ่มต้นกะพริบ
-                        transparent: true, 
-                        opacity: 0.8 
-                    });
-                    child.material = highlightMat;
-
-                    // ทำ Effect กะพริบช้าๆ (Pulse)
-                    pulseTween = gsap.to(highlightMat, {
-                        emissiveIntensity: 1.2,
-                        duration: 1.5,
-                        repeat: -1,
-                        yoyo: true,
-                        ease: "sine.inOut"
-                    });
-                }
+            target.traverse(c => {
+                if (!c.isMesh) return;
+                origMats.set(c, c.material);
+                const mat = new THREE.MeshStandardMaterial({
+                    color:0x38bdf8, emissive:0x38bdf8,
+                    emissiveIntensity:.3, transparent:true, opacity:.82
+                });
+                c.material = mat;
+                if (pulseTw) pulseTw.kill();
+                pulseTw = gsap.to(mat, { emissiveIntensity:1.3, duration:1.4, repeat:-1, yoyo:true, ease:'sine.inOut' });
             });
 
-            document.getElementById('target-name').innerText = "📍 " + objectName;
+            document.getElementById('ic-name').textContent = label || objName;
             document.getElementById('info-card').classList.add('active');
 
-            const distance = Math.max(size * 1.1, 80); 
+            const box    = new THREE.Box3().setFromObject(target);
+            const center = box.getCenter(new THREE.Vector3());
+            const size   = box.getSize(new THREE.Vector3()).length();
+            const dist   = Math.max(size * 1.1, 80);
 
-            // เลื่อนกล้องและเป้าหมาย
             gsap.to(camera.position, {
-                x: center.x + distance, y: center.y + distance, z: center.z + distance,
-                duration: 1.8, ease: "power3.inOut", 
-                onUpdate: () => controls.update(),
-                onComplete: () => {
-                    controls.autoRotate = true; // เริ่มหมุนช้าๆ เมื่อซูมเสร็จ
-                }
+                x:center.x+dist, y:center.y+dist, z:center.z+dist,
+                duration:1.8, ease:'power3.inOut',
+                onUpdate:   () => controls.update(),
+                onComplete: () => { controls.autoRotate = true; }
             });
-
             gsap.to(controls.target, {
-                x: center.x, y: center.y, z: center.z,
-                duration: 1.8, ease: "power3.inOut"
+                x:center.x, y:center.y, z:center.z,
+                duration:1.8, ease:'power3.inOut'
             });
 
-            if (window.innerWidth < 768) toggleMenu();
-        };
+            if (innerWidth < 768) togglePanel();
+        }
 
-        window.toggleMenu = () => {
-            document.getElementById('nav-menu').classList.toggle('active');
-            document.getElementById('btn-toggle').classList.toggle('active');
-        };
-
-        window.resetHighlight = (moveCamera = true) => {
-            // หยุดการกะพริบ
-            if (pulseTween) { pulseTween.kill(); pulseTween = null; }
-            
-            if (lastHighlightedObject) {
-                lastHighlightedObject.traverse(c => { 
-                    if(c.isMesh && originalMaterials.has(c)) c.material = originalMaterials.get(c); 
+        /* ─── clearHL ────────────────────────────────────────── */
+        function clearHL(moveCamera) {
+            if (pulseTw) { pulseTw.kill(); pulseTw = null; }
+            if (highlighted) {
+                highlighted.traverse(c => {
+                    if (c.isMesh && origMats.has(c)) c.material = origMats.get(c);
                 });
-                originalMaterials.clear(); 
-                lastHighlightedObject = null;
+                origMats.clear(); highlighted = null;
                 document.getElementById('info-card').classList.remove('active');
             }
-
-            controls.autoRotate = false; // หยุดการหมุน
-
+            if (activeEl) { activeEl.classList.remove('active-loc'); activeEl = null; }
+            controls.autoRotate = false;
             if (moveCamera) {
-                gsap.to(controls.target, { x: initialTargetPos.x, y: initialTargetPos.y, z: initialTargetPos.z, duration: 1.2, ease: "expo.out" });
-                gsap.to(camera.position, { x: initialCameraPos.x, y: initialCameraPos.y, z: initialCameraPos.z, duration: 1.2, ease: "expo.out", onUpdate: () => controls.update() });
-                if(document.getElementById('nav-menu').classList.contains('active')) toggleMenu();
-            }
-        };
-
-        function setupZoomButtons() {
-            const setup = (id, dir) => {
-                const btn = document.getElementById(id);
-                btn.onpointerdown = (e) => { btn.setPointerCapture(e.pointerId); zoomDir = dir; controls.autoRotate = false; };
-                btn.onpointerup = () => zoomDir = 0;
-            };
-            setup("btn-in", -1); setup("btn-out", 1);
-        }
-
-        function updateButtonZoom() {
-            currentZoomSpeed += (zoomDir * 12.0 - currentZoomSpeed) * 0.15;
-            if (Math.abs(currentZoomSpeed) > 0.01) {
-                const dir = new THREE.Vector3(); 
-                camera.getWorldDirection(dir);
-                camera.position.addScaledVector(dir, -currentZoomSpeed);
-                controls.update();
+                gsap.to(controls.target, { x:initTarget.x, y:initTarget.y, z:initTarget.z, duration:1.2, ease:'expo.out' });
+                gsap.to(camera.position, {
+                    x:initCamPos.x, y:initCamPos.y, z:initCamPos.z,
+                    duration:1.2, ease:'expo.out', onUpdate:() => controls.update()
+                });
+                const panel = document.getElementById('nav-panel');
+                if (panel.classList.contains('active')) togglePanel();
             }
         }
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        /* ─── Raycast click ──────────────────────────────────── */
+        let ptDown = { x:0, y:0 };
+        renderer.domElement.addEventListener('pointerdown', e => { ptDown.x=e.clientX; ptDown.y=e.clientY; });
+        renderer.domElement.addEventListener('pointerup', e => {
+            if (Math.abs(e.clientX-ptDown.x)>6 || Math.abs(e.clientY-ptDown.y)>6 || !model) return;
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x =  ((e.clientX-rect.left)/rect.width) *2-1;
+            mouse.y = -((e.clientY-rect.top) /rect.height)*2+1;
+            raycaster.setFromCamera(mouse, camera);
+
+            /* intersectObjects คืน hits เรียงจากใกล้→ไกล
+               วนทุก hit จนเจอ object ที่ match LOCS
+               → คลิก "ทะลุ" โมเดลที่บังได้ */
+            const hits = raycaster.intersectObjects(model.children, true);
+            let found = null;
+            for (const hit of hits) {
+                let obj = hit.object;
+                while (obj && !found) {
+                    found = LOCS.find(l => l.obj === obj.name) || null;
+                    obj = obj.parent;
+                }
+                if (found) break;
+            }
+            if (found) {
+                const liEl = [...listEl.querySelectorAll('.loc-item')].find(el=>el.dataset.obj===found.obj)||null;
+                flyTo(found.obj, found.id, liEl);
+            }
+        });
+        /* hover cursor */
+        renderer.domElement.addEventListener('mousemove', e => {
+            if (!model) return;
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x =  ((e.clientX-rect.left)/rect.width) *2-1;
+            mouse.y = -((e.clientY-rect.top) /rect.height)*2+1;
+            raycaster.setFromCamera(mouse, camera);
+            renderer.domElement.style.cursor =
+                raycaster.intersectObjects(model.children,true).length ? 'pointer' : 'default';
+        });
+
+        /* ─── Toggle panel ───────────────────────────────────── */
+        function togglePanel() {
+            document.getElementById('nav-panel').classList.toggle('active');
+            document.getElementById('btn-toggle').classList.toggle('open');
+        }
+
+        /* ─── Buttons ────────────────────────────────────────── */
+        function holdZoom(id, dir) {
+            const btn = document.getElementById(id);
+            btn.addEventListener('pointerdown', e => { btn.setPointerCapture(e.pointerId); zoomDir=dir; controls.autoRotate=false; });
+            btn.addEventListener('pointerup',     () => zoomDir=0);
+            btn.addEventListener('pointercancel', () => zoomDir=0);
+        }
+        holdZoom('btn-in', -1); holdZoom('btn-out', 1);
+        document.getElementById('btn-toggle').addEventListener('click', togglePanel);
+        document.getElementById('btn-reset').addEventListener('click',  () => clearHL(true));
+        document.getElementById('ic-close').addEventListener('click',   () => clearHL(false));
+
+        /* ─── Resize ─────────────────────────────────────────── */
+        window.addEventListener('resize', () => {
+            camera.aspect = innerWidth/innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(innerWidth, innerHeight);
+        });
+
+        /* ─── Render loop ────────────────────────────────────── */
+
+        /* Raycaster สำหรับ collision — แยกจาก raycaster ที่ใช้คลิก */
+        const _collRay   = new THREE.Raycaster();
+        const _rayDir    = new THREE.Vector3();
+        const _prevCam   = new THREE.Vector3();
+        const CAM_MARGIN = 12; /* หน่วย — ระยะห่างขั้นต่ำระหว่างกล้องกับผนัง */
+
+        /* ยิง ray จาก target → camera
+           ถ้าชนผนัง/อาคารก่อนถึง camera ให้ clamp camera ไว้ก่อนจุดชน
+           → กล้องไม่ทะลุเข้าอาคารได้เลย ไม่ว่าจะ orbit / zoom / drag */
+        function clampCameraToOutside() {
+            const target = controls.target;
+            _rayDir.subVectors(camera.position, target);
+            const dist = _rayDir.length();
+            if (dist < 0.001) return;
+            _rayDir.normalize();
+
+            _collRay.set(target, _rayDir);
+            _collRay.far = dist + CAM_MARGIN;
+
+            const hits = _collRay.intersectObjects(solidMeshes, false);
+            if (hits.length > 0) {
+                /* จุดชนที่ใกล้ target ที่สุด */
+                const hitDist = hits[0].distance;
+                if (hitDist - CAM_MARGIN < dist) {
+                    /* ดึง camera มาอยู่ด้านนอกผนัง + margin */
+                    const safeDist = Math.max(hitDist - CAM_MARGIN, controls.minDistance);
+                    camera.position.copy(target).addScaledVector(_rayDir, safeDist);
+                }
+            }
+
+            /* clamp ไม่ให้ต่ำกว่าพื้น */
+            const floorY = groundY + 15;
+            if (camera.position.y < floorY) camera.position.y = floorY;
+            if (controls.target.y  < groundY) controls.target.y = groundY;
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            updateButtonZoom();
-            controls.update(); 
+
+            zoomSpd += (zoomDir*12 - zoomSpd)*0.15;
+            if (Math.abs(zoomSpd) > 0.01) {
+                const d = new THREE.Vector3();
+                camera.getWorldDirection(d);
+                camera.position.addScaledVector(d, -zoomSpd);
+            }
+
+            controls.update();
+
+            /* Collision — ทำหลัง controls.update() ทุก frame */
+            if (solidMeshes.length > 0) clampCameraToOutside();
+
             renderer.render(scene, camera);
         }
     </script>
