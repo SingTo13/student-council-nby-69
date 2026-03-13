@@ -1,340 +1,220 @@
 (function () {
     'use strict';
 
-    /* ═══════════════════════════════════════════════════════
-       STELLAR LOADER  —  Universal Real-Progress Loading Screen
-       วางไว้บรรทัดแรกสุดของ <body> ก่อน script อื่นทุกตัว
-    ═══════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════════
+       STELLAR LOADER  —  ใช้ Pace.js เป็นตัวติดตาม % เท่านั้น
+       วิธีใช้: วาง <script src="All/กำลังโหลด.js"></script>
+                เป็นบรรทัดแรกสุดใน <body>
+       Pace.js จะถูกโหลดอัตโนมัติจาก CDN
+    ═══════════════════════════════════════════════════════════════ */
 
-    // ─── CSS ────────────────────────────────────────────────
-    var style = document.createElement('style');
-    style.innerHTML = [
-        '#stellar-loader{',
-            'position:fixed;inset:0;',
-            'background:#030712;',
+    /* ─── โหลด Pace.js จาก CDN ก่อนทุกอย่าง ──────────────────── */
+    var paceScript = document.createElement('script');
+    paceScript.src = 'https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js';
+    paceScript.async = false;
+    document.head.insertBefore(paceScript, document.head.firstChild);
+
+    /* ซ่อน UI ของ Pace.js เอง (เราใช้แค่ข้อมูล % เท่านั้น) */
+    var hideStyle = document.createElement('style');
+    hideStyle.innerHTML = '.pace,.pace-progress,.pace-activity{display:none!important;opacity:0!important;}';
+    document.head.appendChild(hideStyle);
+
+    /* ─── CSS ──────────────────────────────────────────────────── */
+    var css = document.createElement('style');
+    css.innerHTML = [
+        '#sl{position:fixed;inset:0;background:#030712;',
             'display:flex;flex-direction:column;',
             'align-items:center;justify-content:center;',
-            'z-index:2147483647;',           /* สูงสุดเท่าที่เป็นไปได้ */
-            'font-family:"Kanit",sans-serif;',
-            'transition:opacity .7s cubic-bezier(.4,0,.2,1),visibility .7s;',
-        '}',
-        '#stellar-loader.sl-done{opacity:0!important;visibility:hidden!important;pointer-events:none;}',
+            'z-index:2147483647;font-family:"Kanit",sans-serif;}',
 
-        /* วงโคจร */
-        '.sl-orbit-wrap{position:relative;width:120px;height:120px;margin:0 auto 28px;}',
-        '.sl-orbit{',
-            'position:absolute;inset:0;',
-            'border:1px solid rgba(56,189,248,.18);border-radius:50%;',
-            'animation:sl-spin 2.8s linear infinite;',
+        '#sl.sl-out{',
+            'opacity:0;visibility:hidden;pointer-events:none;',
+            'transition:opacity .4s ease,visibility .4s;',
         '}',
-        '.sl-orbit-2{',
-            'position:absolute;inset:14px;',
-            'border:1px solid rgba(56,189,248,.08);border-radius:50%;',
-            'animation:sl-spin 4.5s linear infinite reverse;',
-        '}',
-        '.sl-dot{',
-            'position:absolute;top:-5px;left:50%;',
+
+        /* orbit */
+        '.sl-ow{position:relative;width:110px;height:110px;margin:0 auto 28px;}',
+        '.sl-o1{position:absolute;inset:0;',
+            'border:1px solid rgba(56,189,248,.2);border-radius:50%;',
+            'animation:sl-sp 2.6s linear infinite;}',
+        '.sl-o2{position:absolute;inset:14px;',
+            'border:1px solid rgba(129,140,248,.12);border-radius:50%;',
+            'animation:sl-sp 4s linear infinite reverse;}',
+        '.sl-d1{position:absolute;top:-5px;left:50%;',
             'width:10px;height:10px;margin-left:-5px;',
             'background:#38bdf8;border-radius:50%;',
-            'box-shadow:0 0 12px 2px #38bdf8;',
-        '}',
-        '.sl-dot2{',
-            'position:absolute;bottom:-4px;left:50%;',
+            'box-shadow:0 0 10px 2px #38bdf8;}',
+        '.sl-d2{position:absolute;bottom:-4px;left:50%;',
             'width:6px;height:6px;margin-left:-3px;',
             'background:#818cf8;border-radius:50%;',
-            'box-shadow:0 0 8px 2px #818cf8;',
-        '}',
-        '.sl-logo{',
-            'position:absolute;top:50%;left:50%;',
-            'transform:translate(-50%,-50%);',
-            'width:62px;',
-            'filter:drop-shadow(0 0 14px rgba(56,189,248,.45));',
-        '}',
-        '@keyframes sl-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}',
+            'box-shadow:0 0 8px 2px #818cf8;}',
+        '.sl-logo{position:absolute;top:50%;left:50%;',
+            'transform:translate(-50%,-50%);width:60px;',
+            'filter:drop-shadow(0 0 12px rgba(56,189,248,.5));}',
+        '@keyframes sl-sp{to{transform:rotate(360deg)}}',
 
         /* text */
-        '.sl-label{',
-            'font-size:.72rem;letter-spacing:5px;text-transform:uppercase;',
-            'color:rgba(255,255,255,.55);margin-bottom:6px;',
-        '}',
-        '.sl-percent{',
-            'font-size:2.6rem;font-weight:700;line-height:1;',
-            'color:#fff;margin-bottom:16px;',
-            'transition:color .3s;',
-        '}',
-        '.sl-percent.sl-done-num{color:#38bdf8;}',
+        '.sl-lbl{font-size:.68rem;letter-spacing:5px;text-transform:uppercase;',
+            'color:rgba(255,255,255,.4);margin-bottom:5px;}',
+        '#sl-pct{font-size:2.5rem;font-weight:700;color:#fff;',
+            'line-height:1;margin-bottom:16px;}',
+        '#sl-pct.done{color:#38bdf8;}',
 
         /* bar */
-        '.sl-bar-wrap{',
-            'width:220px;height:2px;',
+        '.sl-bw{width:200px;height:2px;',
             'background:rgba(255,255,255,.08);',
-            'border-radius:10px;overflow:hidden;margin-bottom:14px;',
-        '}',
-        '#sl-bar{',
-            'height:100%;width:0%;',
+            'border-radius:4px;overflow:hidden;margin-bottom:12px;}',
+        '#sl-bar{height:100%;width:0%;',
             'background:linear-gradient(90deg,#38bdf8,#818cf8);',
-            'box-shadow:0 0 10px #38bdf8;',
-            'border-radius:10px;',
-            'transition:width .35s ease;',
-        '}',
+            'border-radius:4px;',
+            'transition:width .15s linear;}',
 
         /* status */
-        '#sl-status{',
-            'font-size:.75rem;letter-spacing:2px;text-transform:uppercase;',
-            'color:rgba(255,255,255,.35);',
-            'min-height:1.2em;transition:color .3s;',
-        '}',
+        '#sl-st{font-size:.7rem;letter-spacing:1.5px;',
+            'color:rgba(255,255,255,.28);min-height:1.1em;}',
     ].join('');
-    document.head.appendChild(style);
+    document.head.appendChild(css);
 
-    // ─── HTML ────────────────────────────────────────────────
+    /* ─── HTML ─────────────────────────────────────────────────── */
     document.body.insertAdjacentHTML('afterbegin', [
-        '<div id="stellar-loader">',
-            '<div class="sl-orbit-wrap">',
-                '<div class="sl-orbit"><div class="sl-dot"></div></div>',
-                '<div class="sl-orbit-2"><div class="sl-dot2"></div></div>',
-                '<img src="โลโก้/SmNBY.webp" class="sl-logo" alt="NBY">',
+        '<div id="sl">',
+            '<div class="sl-ow">',
+                '<div class="sl-o1"><div class="sl-d1"></div></div>',
+                '<div class="sl-o2"><div class="sl-d2"></div></div>',
+                '<img src="โลโก้/SmNBY.webp" class="sl-logo" alt="">',
             '</div>',
-            '<div class="sl-label">กำลังโหลด</div>',
-            '<div class="sl-percent" id="sl-pct">0%</div>',
-            '<div class="sl-bar-wrap"><div id="sl-bar"></div></div>',
-            '<div id="sl-status">Initializing...</div>',
+            '<div class="sl-lbl">กำลังโหลด</div>',
+            '<div id="sl-pct">0%</div>',
+            '<div class="sl-bw"><div id="sl-bar"></div></div>',
+            '<div id="sl-st">Initializing...</div>',
         '</div>',
     ].join(''));
 
-    // ─── References ─────────────────────────────────────────
-    var loader   = document.getElementById('stellar-loader');
-    var bar      = document.getElementById('sl-bar');
-    var pctEl    = document.getElementById('sl-pct');
-    var statusEl = document.getElementById('sl-status');
+    var el    = document.getElementById('sl');
+    var bar   = document.getElementById('sl-bar');
+    var pctEl = document.getElementById('sl-pct');
+    var stEl  = document.getElementById('sl-st');
 
-    // ─── State ───────────────────────────────────────────────
-    var _pct      = 0;   // เปอร์เซ็นต์ที่แสดง (ค่อยๆขึ้น)
-    var _target   = 0;   // เป้าหมายปัจจุบัน
-    var _rafId    = null;
-    var _closed   = false;
+    /* ─── State ────────────────────────────────────────────────── */
+    var _closed = false;
+    var _curPct = 0;
 
-    var PHASES = {
-        DOM_LOADED:   15,   // DOMContentLoaded
-        RESOURCES:    75,   // ทรัพยากรทั้งหมดโหลดเสร็จ (ขึ้นกับจำนวน/ขนาด)
-        IMAGES:       90,   // รูปภาพ visible ทั้งหมด complete
-        FONTS:        95,   // fonts loaded
-        DONE:        100
-    };
-
-    // ─── Smooth counter ──────────────────────────────────────
-    function setTarget(t, label) {
-        _target = Math.max(_target, Math.min(t, 100));
-        if (label) statusEl.textContent = label;
-        if (!_rafId) _rafId = requestAnimationFrame(tick);
-    }
-
-    function tick() {
-        _rafId = null;
-        if (_pct < _target) {
-            /* ขึ้นช้าๆ เหลือน้อยยิ่งช้า (เน้นความจริง) */
-            var step = Math.max(0.4, (_target - _pct) * 0.06);
-            _pct = Math.min(_pct + step, _target);
-            render(_pct);
-            _rafId = requestAnimationFrame(tick);
-        } else {
-            render(_target);
-            if (_target >= 100 && !_closed) finalize();
-        }
-    }
-
-    function render(v) {
-        var n = Math.round(v);
+    /* ─── อัปเดต UI ─────────────────────────────────────────────── */
+    function setPct(v) {
+        /* ห้ามถอยหลัง */
+        _curPct = Math.min(Math.max(v, _curPct), 100);
+        var n = Math.round(_curPct);
         bar.style.width   = n + '%';
         pctEl.textContent = n + '%';
     }
 
-    // ─── Finalize ────────────────────────────────────────────
-    function finalize() {
+    function setSt(msg) { stEl.textContent = msg; }
+
+    /* ─── ปิด Loader ─────────────────────────────────────────────── */
+    function closeLoader() {
+        if (_closed) return;
         _closed = true;
-        statusEl.textContent  = 'System Ready';
-        statusEl.style.color  = '#38bdf8';
-        pctEl.classList.add('sl-done-num');
-        setTimeout(function () {
-            loader.classList.add('sl-done');
-        }, 500);
+        setPct(100);
+        pctEl.classList.add('done');
+        setSt('System Ready');
+        stEl.style.color = '#38bdf8';
+        setTimeout(function () { el.classList.add('sl-out'); }, 350);
     }
 
-    /* ═══════════════════════════════════════════════════════
-       PHASE 1 — DOM parsed
-    ═══════════════════════════════════════════════════════ */
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () {
-            setTarget(PHASES.DOM_LOADED, 'DOM Ready...');
-            trackResources();
+    /* ─── เชื่อม Pace.js Events ──────────────────────────────────
+       Pace.js events:
+         pace:start    → เริ่มโหลด
+         pace:progress → ส่ง % (0-100) ← ใช้ค่านี้อย่างเดียว
+         pace:hide     → โหลดเสร็จแล้ว
+    ─────────────────────────────────────────────────────────── */
+    function bindPace() {
+        if (typeof window.Pace === 'undefined') {
+            setTimeout(bindPace, 50);
+            return;
+        }
+
+        setSt('Loading resources...');
+
+        /* รับ % จาก Pace โดยตรง — ไม่มีการแต่งค่าเพิ่มเติม */
+        window.Pace.on('progress', function (pct) {
+            setPct(pct);
+            if      (pct < 30) setSt('Loading resources...');
+            else if (pct < 60) setSt('Fetching assets...');
+            else if (pct < 85) setSt('Almost there...');
+            else               setSt('Finishing up...');
         });
-    } else {
-        setTarget(PHASES.DOM_LOADED, 'DOM Ready...');
-        trackResources();
-    }
 
-    /* ═══════════════════════════════════════════════════════
-       PHASE 2 — Resource tracking (XHR/fetch/img intercept)
-       นับทรัพยากรจริงจาก PerformanceObserver + ResourceTiming
-    ═══════════════════════════════════════════════════════ */
-    function trackResources() {
-        /* นับ pending resources จาก <link>, <script>, <img>, <video>, <source> */
-        var pending   = 0;
-        var completed = 0;
+        /* Pace เสร็จ → ปิด loader */
+        window.Pace.on('hide', function () {
+            closeLoader();
+        });
 
-        function countElements() {
-            var selectors = [
-                'img[src]',
-                'script[src]',
-                'link[rel="stylesheet"]',
-                'link[rel="preload"]',
-                'video[src]', 'video source[src]',
-                'audio[src]', 'audio source[src]',
-            ];
-            return document.querySelectorAll(selectors.join(','));
-        }
-
-        function calcResourcePct() {
-            /* ดึงจาก PerformanceTiming API */
-            var entries = performance.getEntriesByType('resource');
-            if (entries.length === 0) return PHASES.DOM_LOADED;
-
-            /* คำนวณ bytes ที่โหลดแล้ว vs total ถ้ามี transferSize */
-            var totalBytes = 0, loadedBytes = 0;
-            var hasSize = false;
-            entries.forEach(function (e) {
-                if (e.encodedBodySize > 0) {
-                    hasSize = true;
-                    totalBytes   += e.encodedBodySize;
-                    loadedBytes  += e.encodedBodySize;   /* complete entries เท่านั้นที่อยู่ใน getEntries */
-                }
-            });
-
-            /* ถ้าไม่มี size data ใช้จำนวนแทน */
-            var elems = countElements();
-            var total = Math.max(entries.length, elems.length, 1);
-            var done  = entries.length;
-            var ratio = Math.min(done / total, 1);
-
-            /* map ratio → 15–75% */
-            return PHASES.DOM_LOADED + ratio * (PHASES.RESOURCES - PHASES.DOM_LOADED);
-        }
-
-        /* Observer ที่ติดตาม resource แต่ละชิ้น */
-        var observer = null;
-        if (window.PerformanceObserver) {
-            try {
-                observer = new PerformanceObserver(function (list) {
-                    /* ทุกครั้งที่ resource โหลดเสร็จ อัปเดต progress */
-                    var p = calcResourcePct();
-                    setTarget(p, 'Loading Resources...');
-                });
-                observer.observe({ type: 'resource', buffered: true });
-            } catch (e) { /* ไม่รองรับ — ใช้ fallback */ }
-        }
-
-        /* window.load = ทุก resource เสร็จหมดแล้ว */
+        /* Safety: ถ้า Pace ไม่ยิง hide ให้ฟัง window load แทน */
         window.addEventListener('load', function () {
-            if (observer) observer.disconnect();
-            setTarget(PHASES.RESOURCES, 'Resources Loaded...');
-            checkImages();
-        });
-
-        /* fallback กรณีที่ load ไม่ fired (page cached) */
-        if (document.readyState === 'complete') {
-            if (observer) observer.disconnect();
-            setTarget(PHASES.RESOURCES, 'Resources Loaded...');
-            checkImages();
-        }
-    }
-
-    /* ═══════════════════════════════════════════════════════
-       PHASE 3 — ตรวจสอบรูปภาพที่ visible ทั้งหมด complete จริง
-    ═══════════════════════════════════════════════════════ */
-    function checkImages() {
-        var imgs = Array.prototype.slice.call(document.images);
-        if (imgs.length === 0) { checkFonts(); return; }
-
-        var total     = imgs.length;
-        var done      = 0;
-
-        function onOne() {
-            done++;
-            var p = PHASES.RESOURCES + (done / total) * (PHASES.IMAGES - PHASES.RESOURCES);
-            setTarget(p, 'Loading Images... (' + done + '/' + total + ')');
-            if (done >= total) checkFonts();
-        }
-
-        imgs.forEach(function (img) {
-            if (img.complete && img.naturalWidth > 0) {
-                onOne();
-            } else {
-                img.addEventListener('load',  onOne);
-                img.addEventListener('error', onOne);  /* error ก็นับว่า "เสร็จ" */
-            }
+            setTimeout(function () {
+                if (!_closed) closeLoader();
+            }, 800);
         });
     }
 
-    /* ═══════════════════════════════════════════════════════
-       PHASE 4 — Fonts
-    ═══════════════════════════════════════════════════════ */
-    function checkFonts() {
-        setTarget(PHASES.IMAGES, 'Loading Fonts...');
-        if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(function () {
-                setTarget(PHASES.FONTS, 'Fonts Ready...');
-                done();
-            }).catch(function () { done(); });
-        } else {
-            done();
-        }
-    }
+    /* รอ Pace.js โหลดเสร็จก่อน */
+    paceScript.addEventListener('load', bindPace);
 
-    /* ═══════════════════════════════════════════════════════
-       PHASE 5 — Done
-    ═══════════════════════════════════════════════════════ */
-    function done() {
-        setTarget(PHASES.DONE, 'System Ready');
-    }
+    /* Fallback: ถ้าโหลด Pace ไม่ได้ (ออฟไลน์/บล็อก CDN) */
+    paceScript.addEventListener('error', function () {
+        setSt('Loading...');
+        window.addEventListener('load', function () {
+            setPct(100);
+            setTimeout(closeLoader, 200);
+        });
+    });
 
-    /* ═══════════════════════════════════════════════════════
-       SAFETY NET — บังคับปิดหลัง 15 วินาที (กรณีเน็ตช้ามาก)
-    ═══════════════════════════════════════════════════════ */
+    /* Safety net 20s */
     setTimeout(function () {
-        if (!_closed) {
-            setTarget(100, 'System Ready');
-        }
-    }, 15000);
+        if (!_closed) closeLoader();
+    }, 20000);
 
-    /* ═══════════════════════════════════════════════════════
-       INTER-PAGE TRANSITION — แสดง loader ตอนเปลี่ยนหน้า
-    ═══════════════════════════════════════════════════════ */
-    function showLoader(msg) {
-        loader.classList.remove('sl-done');
-        _pct = 0; _target = 0; _closed = false;
-        render(0);
+    /* ═══════════════════════════════════════════════════════════
+       PUBLIC API — window.StellarLoader
+    ═══════════════════════════════════════════════════════════ */
+    window.StellarLoader = {
+        forceClose: function () { closeLoader(); }
+    };
+
+    /* ═══════════════════════════════════════════════════════════
+       INTER-PAGE TRANSITION
+    ═══════════════════════════════════════════════════════════ */
+    function resetLoader(msg) {
+        if (!el) return;
+        el.classList.remove('sl-out');
+        _closed = false;
+        _curPct = 0;
+        setPct(0);
         bar.style.transition = 'none';
-        setTimeout(function(){ bar.style.transition = 'width .35s ease'; }, 50);
-        statusEl.textContent = msg || 'Transmitting...';
-        statusEl.style.color = '';
-        pctEl.classList.remove('sl-done-num');
+        requestAnimationFrame(function () {
+            bar.style.transition = 'width .15s linear';
+        });
+        pctEl.classList.remove('done');
+        stEl.style.color = '';
+        setSt(msg || 'Navigating...');
     }
 
-    window.addEventListener('beforeunload', function () { showLoader('Transmitting...'); });
+    window.addEventListener('beforeunload', function () {
+        resetLoader('Transmitting...');
+    });
 
     document.addEventListener('click', function (e) {
-        var link = e.target.closest('a');
-        if (link && link.href
-            && !link.target
-            && link.origin === window.location.origin
-            && !link.hash
-            && link.href !== window.location.href) {
-            showLoader('Navigating...');
+        var a = e.target.closest('a');
+        if (a && a.href && !a.target
+            && a.origin === location.origin
+            && !a.hash
+            && a.href !== location.href) {
+            resetLoader('Navigating...');
         }
     });
 
     window.addEventListener('pageshow', function (e) {
-        if (e.persisted) loader.classList.add('sl-done');
+        if (e.persisted) el.classList.add('sl-out');
     });
 
 })();
