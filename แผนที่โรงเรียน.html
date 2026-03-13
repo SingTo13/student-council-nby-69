@@ -252,9 +252,9 @@
             { id:'ม.2/2', obj:'รอบโรงอาหารและห้องน้ำ',   sub:'โรงอาหาร / ห้องน้ำ' },
             { id:'ม.3/1', obj:'รอบอาคาร3',               sub:'อาคาร 3' },
             { id:'ม.3/2', obj:'ถนนข้างโรงอาหาร',         sub:'ข้างโรงอาหาร' },
-            { id:'ม.4/1', obj:'ถนนหน้าอาคาร1',           sub:'หน้าอาคาร 1' },
+            { id:'ม.4/1', obj:'ถนนหน้าอาาร1',           sub:'หน้าอาคาร 1' },
             { id:'ม.4/2', obj:'บนช็อป',                  sub:'ชั้นบนร้านค้า' },
-            { id:'ม.5/1', obj:'ข้างหอประชุม',            sub:'หอประชุม' },
+            { id:'ม.5/1', obj:'ถนนข้างหอประชุม',            sub:'หอประชุม' },
             { id:'ม.5/2', obj:'สนามฟุตบอล',              sub:'สนามกีฬา' },
             { id:'ม.6/1', obj:'สนามและหน้าเสาธง',        sub:'เสาธง / สนาม' },
             { id:'ม.6/2', obj:'ถนนหน้าโรงอาหาร',         sub:'หน้าโรงอาหาร' },
@@ -304,56 +304,36 @@
         controls.enableZoom      = true;
         controls.autoRotate      = false;
         controls.autoRotateSpeed = 0.5;
-        controls.minPolarAngle   = 0.15;          /* ก้มได้น้อยสุด ~9° จากแนวนอน */
-        controls.maxPolarAngle   = Math.PI / 2.3; /* ไม่ให้ต่ำกว่าแนวระนาบ */
-        controls.minDistance     = 80;            /* ซูมเข้าได้แค่นี้ ไม่ให้ทะลุอาคาร */
+        controls.maxPolarAngle   = Math.PI / 2.1;
+        controls.minDistance     = 50;
         controls.maxDistance     = 1500;
 
         /* ─── Load GLB ───────────────────────────────────────
            StellarLoader.hold() ถูกเรียกใน <script> synchronous
            ด้านบนแล้ว ทำให้มั่นใจว่า loader ค้างรอแน่นอน
         ──────────────────────────────────────────────────── */
-        let groundY      = 0;
-        let solidMeshes  = []; /* mesh ที่ถือว่าเป็น "ผนัง" — สแกนหลังโหลด */
-
-        /* ── สแกนโมเดล เก็บ mesh ที่ใหญ่พอให้เป็นอาคาร/ผนัง ──────
-           เกณฑ์: สูง > MIN_H หน่วย AND มี volume > MIN_VOL
-           ต้นไม้มักสูงมากแต่ volume น้อย → กรองออกได้ด้วย MIN_VOL
-        ────────────────────────────────────────────────────────── */
-        const MIN_H   = 4;       /* ความสูงขั้นต่ำ (หน่วยโมเดล) */
-        const MIN_VOL = 2000;    /* volume ขั้นต่ำ (หน่วย³)      */
-
-        function scanSolidMeshes(root) {
-            solidMeshes = [];
-            root.traverse(child => {
-                if (!child.isMesh || !child.geometry) return;
-                const b    = new THREE.Box3().setFromObject(child);
-                const size = b.getSize(new THREE.Vector3());
-                if (size.y < MIN_H) return;                    /* แบนเกิน → พื้น/ถนน */
-                if (size.x*size.y*size.z < MIN_VOL) return;   /* เล็กเกิน → ใบไม้/รายละเอียด */
-                solidMeshes.push(child);
-            });
-            console.log(`[Collision] scanned ${solidMeshes.length} solid meshes`);
-        }
+        let groundY = 0; /* ค่าพื้นต่ำสุดของโมเดล — ตั้งค่าหลังโหลด */
 
         new GLTFLoader().load(
             'school_map.glb',
             (gltf) => {                          /* onLoad */
                 model = gltf.scene;
+                model.position.y += 2;           /* ยกโมเดลขึ้น 2 หน่วย — แก้บัคทะลุพื้น */
                 scene.add(model);
                 const box    = new THREE.Box3().setFromObject(model);
                 const center = box.getCenter(new THREE.Vector3());
-                groundY = box.min.y;
+                groundY = box.min.y;             /* จดค่าพื้นจริงของโมเดล */
 
                 initTarget.copy(center);
                 initCamPos.set(center.x+500, center.y+500, center.z+500);
                 controls.target.copy(initTarget);
                 camera.position.copy(initCamPos);
-                controls.maxPolarAngle = Math.PI / 2.1;
-                controls.update();
 
-                /* สแกนหลังโมเดลอยู่ใน scene แล้ว (world matrix พร้อม) */
-                scanSolidMeshes(model);
+                /* ห้ามกล้องต่ำกว่าพื้น + margin เล็กน้อย */
+                controls.minPolarAngle = 0;
+                controls.maxPolarAngle = Math.PI / 2.1;
+
+                controls.update();
 
                 requestAnimationFrame(() => {
                     if (window.StellarLoader) window.StellarLoader.release();
@@ -507,58 +487,20 @@
         });
 
         /* ─── Render loop ────────────────────────────────────── */
-
-        /* Raycaster สำหรับ collision — แยกจาก raycaster ที่ใช้คลิก */
-        const _collRay   = new THREE.Raycaster();
-        const _rayDir    = new THREE.Vector3();
-        const _prevCam   = new THREE.Vector3();
-        const CAM_MARGIN = 12; /* หน่วย — ระยะห่างขั้นต่ำระหว่างกล้องกับผนัง */
-
-        /* ยิง ray จาก target → camera
-           ถ้าชนผนัง/อาคารก่อนถึง camera ให้ clamp camera ไว้ก่อนจุดชน
-           → กล้องไม่ทะลุเข้าอาคารได้เลย ไม่ว่าจะ orbit / zoom / drag */
-        function clampCameraToOutside() {
-            const target = controls.target;
-            _rayDir.subVectors(camera.position, target);
-            const dist = _rayDir.length();
-            if (dist < 0.001) return;
-            _rayDir.normalize();
-
-            _collRay.set(target, _rayDir);
-            _collRay.far = dist + CAM_MARGIN;
-
-            const hits = _collRay.intersectObjects(solidMeshes, false);
-            if (hits.length > 0) {
-                /* จุดชนที่ใกล้ target ที่สุด */
-                const hitDist = hits[0].distance;
-                if (hitDist - CAM_MARGIN < dist) {
-                    /* ดึง camera มาอยู่ด้านนอกผนัง + margin */
-                    const safeDist = Math.max(hitDist - CAM_MARGIN, controls.minDistance);
-                    camera.position.copy(target).addScaledVector(_rayDir, safeDist);
-                }
-            }
-
-            /* clamp ไม่ให้ต่ำกว่าพื้น */
-            const floorY = groundY + 15;
-            if (camera.position.y < floorY) camera.position.y = floorY;
-            if (controls.target.y  < groundY) controls.target.y = groundY;
-        }
-
         function animate() {
             requestAnimationFrame(animate);
-
             zoomSpd += (zoomDir*12 - zoomSpd)*0.15;
             if (Math.abs(zoomSpd) > 0.01) {
                 const d = new THREE.Vector3();
                 camera.getWorldDirection(d);
                 camera.position.addScaledVector(d, -zoomSpd);
+                controls.update();
             }
-
+            /* clamp กล้องไม่ให้ต่ำกว่าพื้นโมเดล */
+            if (camera.position.y < groundY + 10) {
+                camera.position.y = groundY + 10;
+            }
             controls.update();
-
-            /* Collision — ทำหลัง controls.update() ทุก frame */
-            if (solidMeshes.length > 0) clampCameraToOutside();
-
             renderer.render(scene, camera);
         }
     </script>
