@@ -41,26 +41,7 @@
         @keyframes rippleOut    { 0%{width:0;height:0;opacity:.9} 100%{width:110px;height:110px;opacity:0} }
         @keyframes icPulse      { 0%,100%{box-shadow:0 0 0 0 var(--accent-glow)} 50%{box-shadow:0 0 0 7px rgba(56,189,248,0)} }
 
-        /* ── ACCURACY BADGE (มุมบนขวา) ── */
-        #accuracy-badge {
-            position:fixed; top:calc(var(--safe-top) + 12px); right:var(--edge);
-            z-index:400; pointer-events:none;
-            background:var(--glass);
-            border:1px solid var(--border-accent);
-            border-left:3px solid var(--accent);
-            border-radius:10px; padding:6px 11px;
-            backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-            box-shadow:0 2px 14px rgba(0,0,0,.40), 0 0 12px var(--accent-glow);
-            animation:slideInRight .6s .3s cubic-bezier(.34,1.56,.64,1) both;
-        }
-        #accuracy-badge .ab-row1 {
-            display:flex; align-items:center; gap:5px;
-            font-size:.72rem; font-weight:700; color:var(--accent); white-space:nowrap;
-        }
-        #accuracy-badge .ab-row2 {
-            font-size:.6rem; color:var(--text-dim);
-            margin-top:2px; white-space:nowrap; line-height:1.3;
-        }
+
 
         /* ── TOAST ── */
         #toast {
@@ -298,11 +279,7 @@
 <script src="All/พื้นหลัง.js"></script>
 <script>if (window.StellarLoader) window.StellarLoader.hold();</script>
 
-<!-- ACCURACY BADGE — มุมบนขวา -->
-<div id="accuracy-badge">
-    <div class="ab-row1"><i class="fas fa-circle-info"></i> ความแม่นยำของแผนที่ 80% เท่านั้น</div>
-    <div class="ab-row2">ดูเพื่อเป็นแนวทางเขตบริเวณ</div>
-</div>
+
 
 <div id="toast"></div>
 
