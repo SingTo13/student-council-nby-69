@@ -19,10 +19,10 @@
             --accent-border: rgba(56,189,248,0.30);
 
             /* frosted glass palette */
-            --frost:         rgba(255,255,255,0.07);
-            --frost-hover:   rgba(255,255,255,0.11);
-            --frost-input:   rgba(255,255,255,0.06);
-            --frost-input-f: rgba(255,255,255,0.10);
+            --frost:         rgba(0,0,0,0.35);
+            --frost-hover:   rgba(0,0,0,0.45);
+            --frost-input:   rgba(0,0,0,0.25);
+            --frost-input-f: rgba(0,0,0,0.35);
             --border:        rgba(255,255,255,0.12);
             --border-s:      rgba(255,255,255,0.06);
             --shine:         rgba(255,255,255,0.55);
@@ -436,26 +436,173 @@ const app = initializeApp({
 });
 const db = getFirestore(app);
 
-/* ── PurgoMalum — content filter ── */
-async function filterContent(text, link = "") {
-    /* ตรวจ format ลิงก์ก่อน (ไม่ต้องเรียก API) */
-    if (link && !/^https?:\/\/.+/i.test(link))
-        return { ok:false, msg:"ลิงก์ต้องขึ้นต้นด้วย https:// หรือ http://" };
+/* ── Thai Profanity Word List (offline filter) ── */
+const THAI_BAD_WORDS = [
+    "ควย", "หี", "สัด", "เหี้ย", "แตด", "กระหรี่", "สวะ", "หมอย", "จัญไร",
+    "เย็ด", "พ่อง", "ห่า", "อี", "มึง", "กู", "สถุน", "หน้าด้าน", "หน้าโง่",
+    "ไอ้สัต", "ชาติหมา", "ลูกหมา", "พวกสัด", "หน้าตัวเมีย", "ตอแหล", "ขี้โกง",
+    "ขี้โม้", "ขี้ขลาด", "ไอ้โง่", "ไอ้เหี้ย", "ไอ้หมอย", "ไอ้สวะ", "ระยำ",
+    "ชั้นต่ำ", "สกปรก", "อัปรีย์", "เลว", "ทราม", "คนชั่ว", "คนเลว", "หน้าตัว",
+    "fuck", "shit", "damn", "bitch", "asshole", "bastard", "dick", "pussy", "cunt"
+];
 
+function checkLocalProfanity(text) {
+    const lowerText = text.toLowerCase();
+    for (const word of THAI_BAD_WORDS) {
+        if (lowerText.includes(word)) return true;
+    }
+    // Check common patterns
+    const patterns = [
+        /คว+[ยว]/, /ห+[ีึ]+/, /ส+[ัดัด]/, /เห+[ี]+[้ย]/, /แต+[ด]/,
+        /f+u+c+k+/i, /s+h+[i1]+t+/i, /b+[i1]+t+c+h+/i, /a+s+s+h+o+l+e+/i
+    ];
+    for (const pattern of patterns) {
+        if (pattern.test(text)) return true;
+    }
+    return false;
+}
+import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI("AIzaSyBT6Q_MTwq-brNZY54C63R0dnymWGzojjg");
+const safetyModel = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash",
+    safetySettings: [
+        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+    ],
+});
+
+async function checkProfanity(text) {
+    // Step 1: Check local word list first (fast, offline)
+    if (checkLocalProfanity(text)) return true;
+    
+    // Step 2: AI validation (more thorough, requires API)
     try {
-        const combined = text + (link ? " " + link : "");
-        const res = await fetch(
-            "https://www.purgomalum.com/service/containsprofanity?text=" +
-            encodeURIComponent(combined)
+        const result = await safetyModel.generateContent(
+            `ตรวจสอบว่าข้อความนี้มีคำหยาบ คำดูถูก หรือภาษาไม่สุภาพหรือไม่ ตอบแค่ "true" ถ้ามี หรือ "false" ถ้าไม่มี: "${text}"`
         );
-        const flagged = (await res.text()).trim() === "true";
-        if (flagged) return { ok:false, msg:"กรุณาใช้ถ้อยคำที่สุภาพครับ 🙏" };
-    } catch(e) {
-        console.warn("PurgoMalum error:", e);
-        /* fail-open — ถ้า API ล่มให้ผ่านไปก่อน */
+        const response = result.response.text().trim().toLowerCase();
+        return response.includes("true");
+    } catch (error) {
+        console.warn("Gemini filter error:", error);
+        // Fail-closed: block submission if API fails
+        return true;
+    }
+}
+
+/* ── Link Safety Check (Hybrid: Safe Browsing + Gemini AI) ── */
+const SAFE_BROWSING_API_KEY = "AIzaSyBT6Q_MTwq-brNZY54C63R0dnymWGzojjg"; // ใช้ร่วมกับ Gemini
+
+async function checkSafeBrowsing(url) {
+    try {
+        const response = await fetch(
+            `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${AIzaSyC9epyzn2ycDdeM7-desg3JyrIYU7q8cB4}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    client: { clientId: "student-council-nby", clientVersion: "1.0" },
+                    threatInfo: {
+                        threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
+                        platformTypes: ["ANY_PLATFORM"],
+                        threatEntryTypes: ["URL"],
+                        threatEntries: [{ url }]
+                    }
+                })
+            }
+        );
+        const data = await response.json();
+        return { 
+            isThreat: !!(data.matches && data.matches.length > 0),
+            threats: data.matches || []
+        };
+    } catch (error) {
+        console.warn("Safe Browsing API error:", error);
+        return { isThreat: null, error: true }; // null = ไม่สามารถตรวจสอบได้
+    }
+}
+
+async function analyzeUrlWithAI(url) {
+    try {
+        const result = await safetyModel.generateContent(
+            `วิเคราะห์ URL นี้ว่ามีความปลอดภัยหรือไม่: "${url}"\n\n` +
+            `ตอบในรูปแบบ JSON ดังนี้:\n` +
+            `{\n  "isSafe": true/false,\n  "riskLevel": "low/medium/high",\n  "reason": "เหตุผลสั้นๆ ภาษาไทย"\n}`
+        );
+        const text = result.response.text();
+        // แยก JSON จากข้อความตอบ
+        const jsonMatch = text.match(/\{[^}]+\}/s);
+        if (jsonMatch) {
+            const analysis = JSON.parse(jsonMatch[0]);
+            return {
+                isSafe: analysis.isSafe,
+                riskLevel: analysis.riskLevel,
+                reason: analysis.reason
+            };
+        }
+        return { isSafe: true, riskLevel: "unknown", reason: "ไม่สามารถวิเคราะห์ได้" };
+    } catch (error) {
+        console.warn("AI URL analysis error:", error);
+        return { isSafe: null, riskLevel: "unknown", reason: "AI ตรวจสอบไม่สำเร็จ" };
+    }
+}
+
+async function checkLinkSafety(url) {
+    // Step 1: Check with Google Safe Browsing
+    const safeBrowsingResult = await checkSafeBrowsing(url);
+    
+    if (safeBrowsingResult.isThreat === true) {
+        return { 
+            ok: false, 
+            msg: "ลิงก์นี้อันตราย! พบในระบบ Google Safe Browsing 🚫",
+            source: "safe_browsing",
+            threats: safeBrowsingResult.threats
+        };
+    }
+    
+    // Step 2: If Safe Browsing doesn't know (null = error) or safe, use AI analysis
+    if (safeBrowsingResult.isThreat === null || safeBrowsingResult.isThreat === false) {
+        const aiResult = await analyzeUrlWithAI(url);
+        
+        if (aiResult.isSafe === false) {
+            return { 
+                ok: false, 
+                msg: `ลิงก์น่าสงสัย: ${aiResult.reason}`,
+                source: "ai_analysis",
+                riskLevel: aiResult.riskLevel
+            };
+        }
+        
+        // AI couldn't determine (null) - fail closed for suspicious patterns
+        if (aiResult.isSafe === null && safeBrowsingResult.isThreat === null) {
+            return { 
+                ok: false, 
+                msg: "ไม่สามารถตรวจสอบความปลอดภัยของลิงก์ได้ กรุณาลองใหม่",
+                source: "error"
+            };
+        }
+    }
+    
+    return { ok: true };
+}
+
+async function filterContent(text, link = "") {
+    // Check URL format first
+    if (link && !/^https?:\/\/.+/i.test(link))
+        return { ok: false, msg: "ลิงก์ต้องขึ้นต้นด้วย https:// หรือ http://" };
+
+    // Step 1: Check text profanity
+    const combined = text + (link ? " " + link : "");
+    const flagged = await checkProfanity(combined);
+    if (flagged) return { ok: false, msg: "กรุณาใช้ถ้อยคำที่สุภาพครับ 🙏" };
+
+    // Step 2: Check link safety (if provided)
+    if (link) {
+        const linkCheck = await checkLinkSafety(link);
+        if (!linkCheck.ok) return linkCheck;
     }
 
-    return { ok:true };
+    return { ok: true };
 }
 
 /* ── Char counter ── */
