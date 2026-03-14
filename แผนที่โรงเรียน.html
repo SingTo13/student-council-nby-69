@@ -45,8 +45,8 @@
 
         /* ── TOAST ── */
         #toast {
-            position:fixed; top:calc(var(--safe-top) + 58px); left:50%;
-            transform:translateX(-50%) translateY(-10px) scale(.94);
+            position:fixed; bottom:calc(var(--safe-bottom) + 68px); left:50%;
+            transform:translateX(-50%) translateY(10px) scale(.94);
             background:var(--glass); border:1px solid var(--border-accent);
             border-radius:999px; padding:8px 18px;
             font-size:.8rem; color:var(--accent);
@@ -444,6 +444,7 @@ controls.enableZoom=true; controls.autoRotate=false; controls.autoRotateSpeed=0.
 controls.maxPolarAngle=Math.PI/2.1; controls.minDistance=50; controls.maxDistance=1500;
 
 /* ── Load GLB ── */
+showToast('⏳ กำลังโหลดแผนที่...', 999999);
 new GLTFLoader().load(
     'school_map.glb',
     (gltf)=>{
@@ -455,7 +456,6 @@ new GLTFLoader().load(
         const center=box.getCenter(new THREE.Vector3());
         groundY=box.min.y;
 
-        /* วางพื้นทึบให้พอดีกับก้นโมเดล */
         ground.position.y=groundY;
 
         initTarget.copy(center);
@@ -465,14 +465,14 @@ new GLTFLoader().load(
         controls.minPolarAngle=0; controls.maxPolarAngle=Math.PI/2.1;
         controls.update();
 
-        showToast('✅ โหลดแผนที่โรงเรียน นบย. สำเร็จ');
+        showToast('✅ โหลดแผนที่โรงเรียน สำเร็จ');
         setTimeout(()=>showHint('แตะที่อาคาร 2 ครั้ง','เพื่อดูข้อมูลตำแหน่งในโรงเรียน'),1500);
 
         requestAnimationFrame(()=>{ if(window.StellarLoader) window.StellarLoader.release(); });
         animate();
     },
     null,
-    (err)=>{ console.error('GLB error:',err); if(window.StellarLoader) window.StellarLoader.release(); }
+    (err)=>{ console.error('GLB error:',err); showToast('❌ โหลดแผนที่ไม่สำเร็จ'); if(window.StellarLoader) window.StellarLoader.release(); }
 );
 
 /* ── flyTo ── */
@@ -480,7 +480,7 @@ function flyTo(objName,label,itemEl){
     if(!model) return;
     let target=model.getObjectByName(objName);
     if(!target) model.traverse(c=>{ if(!target&&c.name&&c.name.includes(objName)) target=c; });
-    if(!target){ showToast('⚠️ ไม่พบตำแหน่งนี้ในแผนที่'); return; }
+    if(!target){ return; }
     clearHL(false);
     highlighted=target;
     if(itemEl){ activeEl=itemEl; itemEl.classList.add('active-loc'); }
@@ -505,7 +505,6 @@ function flyTo(objName,label,itemEl){
         onUpdate:()=>controls.update(),
         onComplete:()=>{ if(autoRotating) controls.autoRotate=true; }
     });
-    showToast('📍 '+(label||objName));
 }
 
 /* ── clearHL ── */
@@ -523,7 +522,6 @@ function clearHL(moveCamera){
         gsap.to(camera.position,{x:initCamPos.x,y:initCamPos.y,z:initCamPos.z,duration:1.3,ease:'expo.out',onUpdate:()=>controls.update()});
         document.getElementById('nav-panel').classList.remove('active');
         document.getElementById('btn-toggle').classList.remove('open');
-        showToast('🔄 คืนค่ามุมมองโรงเรียนแล้ว');
     }
 }
 
@@ -590,12 +588,10 @@ document.getElementById('ic-close').addEventListener('click',()=>clearHL(false))
 document.getElementById('btn-rotate').addEventListener('click',()=>{
     autoRotating=!autoRotating; controls.autoRotate=autoRotating;
     document.getElementById('btn-rotate').classList.toggle('active-btn',autoRotating);
-    showToast(autoRotating?'🔄 เปิดหมุนอัตโนมัติ':'⏹️ ปิดหมุนอัตโนมัติ');
 });
 document.getElementById('btn-compass').addEventListener('click',()=>{
     gsap.to(controls.target,{x:initTarget.x,y:initTarget.y,z:initTarget.z,duration:1.2,ease:'expo.out'});
     gsap.to(camera.position,{x:initCamPos.x,y:initCamPos.y,z:initCamPos.z,duration:1.2,ease:'expo.out',onUpdate:()=>controls.update()});
-    showToast('🧭 คืนมุมมองเริ่มต้นแล้ว');
 });
 
 /* ── Resize ── */
