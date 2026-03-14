@@ -25,19 +25,12 @@
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
         body {
             overflow:hidden;
-            background:radial-gradient(ellipse at 50% 0%, #0f1f3d 0%, #020817 60%);
             font-family:'Kanit',sans-serif;
             touch-action:none; color:#fff;
             -webkit-tap-highlight-color:transparent;
         }
 
-        /* STARS */
-        #stars { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
-        .star { position:absolute; border-radius:50%; background:#fff; animation:twinkle var(--d,3s) ease-in-out infinite var(--dl,0s); }
-        @keyframes twinkle { 0%,100%{opacity:.1} 50%{opacity:.6} }
-
-        /* KEYFRAMES */
-        @keyframes slideInLeft  { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+        /* ── KEYFRAMES ── */
         @keyframes slideInRight { from{opacity:0;transform:translateX(16px)}  to{opacity:1;transform:translateX(0)} }
         @keyframes slideInUp    { from{opacity:0;transform:translateX(-50%) translateY(18px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
         @keyframes itemReveal   { from{opacity:0;transform:translateY(6px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
@@ -48,29 +41,28 @@
         @keyframes rippleOut    { 0%{width:0;height:0;opacity:.9} 100%{width:110px;height:110px;opacity:0} }
         @keyframes icPulse      { 0%,100%{box-shadow:0 0 0 0 var(--accent-glow)} 50%{box-shadow:0 0 0 7px rgba(56,189,248,0)} }
 
-        /* TOP BAR */
-        #top-bar { position:fixed; top:0; left:0; right:0; z-index:400; padding-top:var(--safe-top); pointer-events:none; }
-        #top-bar-inner {
-            height:52px; display:flex; align-items:center; justify-content:space-between;
-            padding:0 var(--edge);
-            background:linear-gradient(180deg,rgba(2,8,23,.90) 0%,rgba(2,8,23,0) 100%);
-        }
-        #top-bar-inner > * { pointer-events:auto; }
-        .tbtn {
-            width:40px; height:40px; border-radius:13px;
-            background:var(--glass); border:1px solid var(--border);
-            color:rgba(255,255,255,.78); font-size:14px; cursor:pointer;
-            display:flex; align-items:center; justify-content:center;
+        /* ── ACCURACY BADGE (มุมบนขวา) ── */
+        #accuracy-badge {
+            position:fixed; top:calc(var(--safe-top) + 12px); right:var(--edge);
+            z-index:400; pointer-events:none;
+            background:var(--glass);
+            border:1px solid var(--border-accent);
+            border-left:3px solid var(--accent);
+            border-radius:10px; padding:6px 11px;
             backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-            box-shadow:0 4px 16px rgba(0,0,0,.45);
-            transition:.22s; user-select:none; -webkit-user-select:none;
+            box-shadow:0 2px 14px rgba(0,0,0,.40), 0 0 12px var(--accent-glow);
+            animation:slideInRight .6s .3s cubic-bezier(.34,1.56,.64,1) both;
         }
-        .tbtn:hover  { border-color:var(--border-accent); color:var(--accent); }
-        .tbtn:active { transform:scale(.87); }
-        #btn-back    { animation:slideInLeft  .6s .1s cubic-bezier(.34,1.56,.64,1) both; }
-        #btn-compass { animation:slideInRight .6s .1s cubic-bezier(.34,1.56,.64,1) both; }
+        #accuracy-badge .ab-row1 {
+            display:flex; align-items:center; gap:5px;
+            font-size:.72rem; font-weight:700; color:var(--accent); white-space:nowrap;
+        }
+        #accuracy-badge .ab-row2 {
+            font-size:.6rem; color:var(--text-dim);
+            margin-top:2px; white-space:nowrap; line-height:1.3;
+        }
 
-        /* TOAST */
+        /* ── TOAST ── */
         #toast {
             position:fixed; top:calc(var(--safe-top) + 58px); left:50%;
             transform:translateX(-50%) translateY(-10px) scale(.94);
@@ -84,7 +76,7 @@
         }
         #toast.show { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
 
-        /* HINT */
+        /* ── HINT ── */
         #dtap-hint {
             position:fixed; top:50%; left:50%;
             transform:translate(-50%,-50%) scale(.75);
@@ -101,7 +93,7 @@
         #dtap-hint .dh-main { font-weight:700; font-size:.9rem; }
         #dtap-hint .dh-sub  { font-size:.7rem; color:var(--text-dim); }
 
-        /* RIPPLE */
+        /* ── RIPPLE ── */
         .ripple {
             position:fixed; border-radius:50%; width:0; height:0;
             border:2.5px solid var(--accent); pointer-events:none; z-index:350;
@@ -109,7 +101,7 @@
             animation:rippleOut .65s cubic-bezier(.25,.46,.45,.94) forwards;
         }
 
-        /* INFO CARD */
+        /* ── INFO CARD ── */
         #info-card {
             position:fixed;
             bottom:calc(var(--safe-bottom) + 68px);
@@ -147,7 +139,7 @@
         }
         #ic-close:hover { background:rgba(239,68,68,.22); color:#ef4444; border-color:rgba(239,68,68,.3); }
 
-        /* BOTTOM BAR */
+        /* ── BOTTOM BAR ── */
         #bottom-bar {
             position:fixed; bottom:var(--safe-bottom); left:50%;
             transform:translateX(-50%);
@@ -179,6 +171,19 @@
         .lbtn:active { transform:scale(.88); }
         .lbtn.active-btn { border-color:var(--border-accent); color:var(--accent); }
         .lbtn i { font-size:14px; }
+        /* เข็มทิศ — ขนาดเดียวกับ lbtn */
+        #btn-compass {
+            height:46px; width:46px;
+            background:var(--glass); border:1px solid var(--border);
+            border-radius:14px; color:rgba(255,255,255,.68); cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+            box-shadow:0 4px 16px rgba(0,0,0,.38);
+            transition:.2s; user-select:none; -webkit-user-select:none;
+            font-size:16px; flex-shrink:0;
+        }
+        #btn-compass:hover  { border-color:var(--border-accent); color:var(--accent); transform:translateY(-2px); }
+        #btn-compass:active { transform:scale(.86); }
         #btn-toggle {
             width:52px; height:52px; border-radius:17px;
             background:linear-gradient(135deg,var(--accent),#0ea5e9);
@@ -197,7 +202,7 @@
         }
         .zoom-pair { display:flex; gap:5px; }
 
-        /* NAV PANEL */
+        /* ── NAV PANEL ── */
         #nav-panel {
             position:fixed;
             bottom:calc(var(--safe-bottom) + 58px);
@@ -287,21 +292,16 @@
 </head>
 <body>
 
-<div id="stars"></div>
-
-<!-- ① Loader scripts — เหมือนต้นฉบับทุกประการ -->
+<!-- JS ภายนอก — ทำหน้าที่ loading / ย้อนกลับ / พื้นหลัง ครบแล้ว -->
 <script src="All/กำลังโหลด.js"></script>
 <script src="All/ย้อนกลับ.js"></script>
 <script src="All/พื้นหลัง.js"></script>
-<!-- ② hold synchronous ก่อน module จะรัน — เหมือนต้นฉบับ -->
 <script>if (window.StellarLoader) window.StellarLoader.hold();</script>
 
-<!-- TOP BAR -->
-<div id="top-bar">
-    <div id="top-bar-inner">
-        <button class="tbtn" id="btn-back"    title="ย้อนกลับ"><i class="fas fa-chevron-left"></i></button>
-        <button class="tbtn" id="btn-compass" title="คืนมุมมอง"><i class="fas fa-compass"></i></button>
-    </div>
+<!-- ACCURACY BADGE — มุมบนขวา -->
+<div id="accuracy-badge">
+    <div class="ab-row1"><i class="fas fa-circle-info"></i> ความแม่นยำของแผนที่ 80% เท่านั้น</div>
+    <div class="ab-row2">ดูเพื่อเป็นแนวทางเขตบริเวณ</div>
 </div>
 
 <div id="toast"></div>
@@ -325,6 +325,7 @@
     </div>
     <button id="btn-toggle" title="แผนที่โรงเรียน"><i class="fas fa-map-marked-alt"></i></button>
     <button class="lbtn" id="btn-rotate"><i class="fas fa-sync-alt"></i><span>หมุน</span></button>
+    <button id="btn-compass" title="คืนมุมมอง"><i class="fas fa-compass"></i></button>
 </div>
 
 <div id="nav-panel">
@@ -350,17 +351,8 @@
     </div>
 </div>
 
-<!-- Stars + utils -->
+<!-- utils (toast / hint / ripple) -->
 <script>
-(function(){
-    var c = document.getElementById('stars');
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div'); s.className = 'star';
-        var sz = Math.random()*2+.7;
-        s.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+(Math.random()*100)+'%;top:'+(Math.random()*60)+'%;--d:'+(Math.random()*3+2).toFixed(1)+'s;--dl:'+(Math.random()*4).toFixed(1)+'s;';
-        c.appendChild(s);
-    }
-})();
 var _toastTid;
 window.showToast=function(msg,dur){
     dur=dur||2400; var t=document.getElementById('toast');
@@ -383,7 +375,6 @@ window.spawnRipple=function(x,y){
 };
 </script>
 
-<!-- ③ importmap + module — เหมือนต้นฉบับ -->
 <script type="importmap">
 { "imports": {
     "three":          "https://unpkg.com/three@0.160.0/build/three.module.js",
@@ -442,40 +433,64 @@ let autoRotating=false,groundY=0;
 const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
 let tapCount=0,tapTimer=null,ptDownX=0,ptDownY=0,isDrag=false,ptDownTime=0;
 
+/* ── Scene ── */
 scene=new THREE.Scene();
+/* ไม่ตั้ง scene.background — ให้โปร่งใสเพื่อให้พื้นหลัง.js โชว์ผ่าน */
+
 camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,1,10000);
+
+/* alpha:true → canvas โปร่งใส พื้นหลัง.js จะมองเห็นผ่านได้ */
 renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setClearColor(0x000000,0); /* alpha=0 โปร่งใสสนิท */
 document.body.appendChild(renderer.domElement);
 
+/* แสง */
 scene.add(new THREE.AmbientLight(0xffffff,1.2));
 const sun=new THREE.DirectionalLight(0xffffff,1.5);
 sun.position.set(100,300,100); scene.add(sun);
+
+/* พื้นกันทะลุ — ใช้ MeshBasicMaterial สีดำโปร่งแสงเล็กน้อย
+   ทำให้ขอบล่างโมเดลดูเป็นธรรมชาติ ไม่ว่าพื้นหลังจะเป็นสีอะไร */
+const groundGeo=new THREE.PlaneGeometry(20000,20000);
+const groundMat=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.0});
+const ground=new THREE.Mesh(groundGeo,groundMat);
+ground.rotation.x=-Math.PI/2;
+ground.position.y=0;
+ground.renderOrder=0;
+scene.add(ground);
 
 controls=new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true; controls.dampingFactor=0.08;
 controls.enableZoom=true; controls.autoRotate=false; controls.autoRotateSpeed=0.5;
 controls.maxPolarAngle=Math.PI/2.1; controls.minDistance=50; controls.maxDistance=1500;
 
-/* ── Load GLB — เหมือนต้นฉบับทุกประการ ── */
+/* ── Load GLB ── */
 new GLTFLoader().load(
     'school_map.glb',
     (gltf)=>{
         model=gltf.scene;
         model.position.y+=2;
         scene.add(model);
+
         const box=new THREE.Box3().setFromObject(model);
         const center=box.getCenter(new THREE.Vector3());
         groundY=box.min.y;
+
+        /* วางพื้นทึบให้พอดีกับก้นโมเดล */
+        ground.position.y=groundY;
+
         initTarget.copy(center);
         initCamPos.set(center.x+500,center.y+500,center.z+500);
         controls.target.copy(initTarget);
         camera.position.copy(initCamPos);
         controls.minPolarAngle=0; controls.maxPolarAngle=Math.PI/2.1;
         controls.update();
+
         showToast('✅ โหลดแผนที่โรงเรียน นบย. สำเร็จ');
         setTimeout(()=>showHint('แตะที่อาคาร 2 ครั้ง','เพื่อดูข้อมูลตำแหน่งในโรงเรียน'),1500);
+
         requestAnimationFrame(()=>{ if(window.StellarLoader) window.StellarLoader.release(); });
         animate();
     },
@@ -483,6 +498,7 @@ new GLTFLoader().load(
     (err)=>{ console.error('GLB error:',err); if(window.StellarLoader) window.StellarLoader.release(); }
 );
 
+/* ── flyTo ── */
 function flyTo(objName,label,itemEl){
     if(!model) return;
     let target=model.getObjectByName(objName);
@@ -515,6 +531,7 @@ function flyTo(objName,label,itemEl){
     showToast('📍 '+(label||objName));
 }
 
+/* ── clearHL ── */
 function clearHL(moveCamera){
     if(pulseTw){ pulseTw.kill(); pulseTw=null; }
     if(highlighted){
@@ -533,6 +550,7 @@ function clearHL(moveCamera){
     }
 }
 
+/* ── Raycast ── */
 function raycastLoc(cx,cy){
     if(!model) return null;
     const rect=renderer.domElement.getBoundingClientRect();
@@ -547,6 +565,7 @@ function raycastLoc(cx,cy){
     return null;
 }
 
+/* ── Canvas events: double-tap only ── */
 renderer.domElement.addEventListener('pointerdown',e=>{ ptDownX=e.clientX; ptDownY=e.clientY; isDrag=false; ptDownTime=Date.now(); },{passive:true});
 renderer.domElement.addEventListener('pointermove',e=>{ if(Math.abs(e.clientX-ptDownX)>9||Math.abs(e.clientY-ptDownY)>9) isDrag=true; },{passive:true});
 renderer.domElement.addEventListener('pointerup',e=>{
@@ -570,6 +589,7 @@ renderer.domElement.addEventListener('mousemove',e=>{
     renderer.domElement.style.cursor=raycaster.intersectObjects(model.children,true).length?'pointer':'default';
 },{passive:true});
 
+/* ── Panel ── */
 function togglePanel(){
     const panel=document.getElementById('nav-panel'),fab=document.getElementById('btn-toggle');
     const open=panel.classList.toggle('active'); fab.classList.toggle('open',open);
@@ -577,6 +597,7 @@ function togglePanel(){
 }
 function closePanelIfMobile(){ if(innerWidth<768){ document.getElementById('nav-panel').classList.remove('active'); document.getElementById('btn-toggle').classList.remove('open'); } }
 
+/* ── Zoom ── */
 function holdZoom(id,dir){
     const btn=document.getElementById(id);
     btn.addEventListener('pointerdown',e=>{ btn.setPointerCapture(e.pointerId); zoomDir=dir; controls.autoRotate=false; });
@@ -585,6 +606,7 @@ function holdZoom(id,dir){
 }
 holdZoom('btn-in',-1); holdZoom('btn-out',1);
 
+/* ── Button listeners ── */
 document.getElementById('btn-toggle').addEventListener('click',togglePanel);
 document.getElementById('np-close-btn').addEventListener('click',()=>{ document.getElementById('nav-panel').classList.remove('active'); document.getElementById('btn-toggle').classList.remove('open'); });
 document.getElementById('btn-reset').addEventListener('click',()=>clearHL(true));
@@ -599,10 +621,11 @@ document.getElementById('btn-compass').addEventListener('click',()=>{
     gsap.to(camera.position,{x:initCamPos.x,y:initCamPos.y,z:initCamPos.z,duration:1.2,ease:'expo.out',onUpdate:()=>controls.update()});
     showToast('🧭 คืนมุมมองเริ่มต้นแล้ว');
 });
-document.getElementById('btn-back').addEventListener('click',()=>{ if(history.length>1) history.back(); else showToast('⬅️ ไม่มีหน้าก่อนหน้า'); });
 
+/* ── Resize ── */
 window.addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
 
+/* ── Render loop ── */
 function animate(){
     requestAnimationFrame(animate);
     zoomSpd+=(zoomDir*12-zoomSpd)*0.15;
