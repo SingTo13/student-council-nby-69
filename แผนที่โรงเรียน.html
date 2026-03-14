@@ -554,7 +554,6 @@ renderer.domElement.addEventListener('pointerup',e=>{
         clearTimeout(tapTimer); tapCount=0; spawnRipple(cx,cy);
         const found=raycastLoc(cx,cy);
         if(found){ flyLock(); const liEl=[...listEl.querySelectorAll('.loc-item')].find(el=>el.dataset.obj===found.obj)||null; flyTo(found.obj,found.id,liEl); }
-        else showHint('ไม่พบอาคารในจุดนี้','ลองแตะที่ตัวอาคารโดยตรง');
     }
 });
 renderer.domElement.addEventListener('mousemove',e=>{
